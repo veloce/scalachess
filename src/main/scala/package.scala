@@ -1,24 +1,34 @@
-import ornicar.scalalib
+package object chess {
 
-package object chess
 
-    extends scalalib.Validation
-    with scalalib.Common
-    with scalalib.OrnicarNonEmptyList
-    with scalalib.OrnicarMonoid.Instances
 
-    with scalaz.syntax.std.ToBooleanOps
+  sealed trait NonEmptyList[+A] {
+    def head: A
+  }
+  case class NonEmptyCons[+A](head: A, tail: NonEmptyList[A]) extends NonEmptyList[A]
+  case class NonEmptySingle[+A](head: A) extends NonEmptyList[A]
 
-    with scalaz.std.OptionFunctions
-    with scalaz.syntax.std.ToOptionOps
-    with scalaz.syntax.std.ToOptionIdOps
+  sealed trait Validation[+E, +A] {
+    def isFailure: Boolean = this.isInstanceOf[Failure[_]]
+    def isSuccess: Boolean = this.isInstanceOf[Success[_]]
+    def map[C, EE >: E](f: A => C): Validation[EE, C] = flatMap(a => Success(f(a)))
+    def flatMap[C, EE >: E](f: A => Validation[EE, C]): Validation[EE, C] = fold(e => Failure[EE](e), a => f(a))
+    def fold[C](fe: E => C, fa: A => C): C = this match {
+      case Failure(e) => fe(e)
+      case Success(a) => fa(a)
+    }
+    def toOption: Option[A] = fold(_ => None, Some(_))
+  }
+  case class Failure[+E](e: E) extends Validation[E, Nothing]
+  case class Success[+A](e: A) extends Validation[Nothing, A]
 
-    with scalaz.std.ListInstances
-    with scalaz.syntax.std.ToListOps
 
-    with scalaz.syntax.ToValidationOps
-    with scalaz.syntax.ToFunctorOps
-    with scalaz.syntax.ToIdOps {
+  type Failures = NonEmptyList[String]
+  type Valid[+A] = Validation[Failures, A]
+
+  def success[A](e: A): Valid[A] = Success(e)
+  def failure(s: String): Valid[Nothing] = Failure(NonEmptySingle(s))
+
 
   val White = Color.White
   val Black = Color.Black
@@ -33,7 +43,7 @@ package object chess
   type MoveOrDrop = Either[Move, Drop]
 
   object implicitFailures {
-    implicit def stringToFailures(str: String): Failures = scalaz.NonEmptyList(str)
+    implicit def stringToFailures(str: String): Failures = NonEmptySingle(str)
   }
 
   def parseIntOption(str: String): Option[Int] = try {

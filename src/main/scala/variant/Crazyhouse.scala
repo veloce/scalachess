@@ -3,8 +3,6 @@ package variant
 
 import format.Uci
 
-import scalaz.Validation.FlatMap._
-
 case object Crazyhouse extends Variant(
   id = 10,
   key = "crazyhouse",
@@ -16,12 +14,21 @@ case object Crazyhouse extends Variant(
   private def canDropPawnOn(pos: Pos) = (pos.y != 1 && pos.y != 8)
 
   override def drop(situation: Situation, role: Role, pos: Pos): Valid[Drop] = for {
-    d1 <- situation.board.crazyData toValid "Board has no crazyhouse data"
-    _ <- d1.validIf(role != Pawn || canDropPawnOn(pos), s"Can't drop $role on $pos")
+    d1 <- ((situation.board.crazyData) match {
+      case Some(d1) => success(d1)
+      case None => failure("Board has no crazyhouse data")
+    })
+    _ <- (if (role != Pawn || canDropPawnOn(pos)) success(d1) else failure(s"Can't drop $role on $pos"))
     piece = Piece(situation.color, role)
-    d2 <- d1.drop(piece, pos) toValid s"No $piece to drop"
-    board1 <- situation.board.place(piece, pos) toValid s"Can't drop $role on $pos, it's occupied"
-    _ <- board1.validIf(!board1.check(situation.color), s"Dropping $role on $pos doesn't uncheck the king")
+    d2 <- ((d1.drop(piece, pos)) match {
+      case Some(d2) => success(d2)
+      case None => failure(s"No $piece to drop")
+    })
+    board1 <- ((situation.board.place(piece, pos)) match {
+      case Some(board1) => success(board1)
+      case None => failure(s"Can't drop $role on $pos, it's occupied")
+    })
+    _ <- (if (!board1.check(situation.color)) success(board1) else failure(s"Dropping $role on $pos doesn't uncheck the king"))
   } yield Drop(
     piece = piece,
     pos = pos,
@@ -103,7 +110,7 @@ case object Crazyhouse extends Variant(
 
     def store(piece: Piece, from: Pos) =
       copy(
-        pockets = pockets store promoted(from).fold(piece.color.pawn, piece),
+        pockets = pockets store (if (promoted(from)) piece.color.pawn else piece),
         promoted = promoted - from)
 
     def promote(pos: Pos) = copy(promoted = promoted + pos)

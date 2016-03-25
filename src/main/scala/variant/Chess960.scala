@@ -16,7 +16,7 @@ case object Chess960 extends Variant(
   }
 
   def positionNumber(fen: String): Option[Int] =
-    positions.indexOf(fen.takeWhile('/'!=)).some.filter(-1!=)
+    Some(positions.indexOf(fen.takeWhile('/'!=))).filter(-1!=)
 
   private val positions = Array(
     "bbqnnrkr",

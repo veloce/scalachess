@@ -41,11 +41,11 @@ case class Situation(board: Board, color: Color) {
     (board valid strict) && !end && !copy(color = !color).check
 
   def status: Option[Status] =
-    if (checkMate) Status.Mate.some
-    else if (variantEnd) Status.VariantEnd.some
-    else if (staleMate) Status.Stalemate.some
-    else if (autoDraw) Status.Draw.some
-    else none
+    if (checkMate) Some(Status.Mate)
+    else if (variantEnd) Some(Status.VariantEnd)
+    else if (staleMate) Some(Status.Stalemate)
+    else if (autoDraw) Some(Status.Draw)
+    else None
 
   def move(from: Pos, to: Pos, promotion: Option[PromotableRole]): Valid[Move] =
     board.variant.move(this, from, to, promotion)

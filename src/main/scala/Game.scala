@@ -29,9 +29,7 @@ case class Game(
       clock = applyClock(move.lag)
     )
     val pgnMove = pgn.Dumper(situation, move, newGame.situation)
-    newGame.copy(pgnMoves = pgnMoves.isEmpty.fold(
-      List(pgnMove),
-      pgnMoves :+ pgnMove))
+    newGame.copy(pgnMoves = if (pgnMoves.isEmpty) List(pgnMove) else pgnMoves :+ pgnMove)
   }
 
   def drop(role: Role, pos: Pos, lag: FiniteDuration = 0.millis): Valid[(Game, Drop)] =
@@ -47,9 +45,7 @@ case class Game(
       clock = applyClock(drop.lag)
     )
     val pgnMove = pgn.Dumper(situation, drop, newGame.situation)
-    newGame.copy(pgnMoves = pgnMoves.isEmpty.fold(
-      List(pgnMove),
-      pgnMoves :+ pgnMove))
+    newGame.copy(pgnMoves = if (pgnMoves.isEmpty) List(pgnMove) else pgnMoves :+ pgnMove)
   }
 
   private def applyClock(lag: FiniteDuration) = clock map {
@@ -95,7 +91,7 @@ object Game {
   )
 
   def apply(variant: Option[chess.variant.Variant], fen: Option[String]): Game = {
-    val g = apply(variant | chess.variant.Standard)
+    val g = apply(variant getOrElse chess.variant.Standard)
     fen.flatMap(format.Forsyth.<<<).fold(g) { parsed =>
       g.copy(
         board = parsed.situation.board withVariant g.board.variant withCrazyData {

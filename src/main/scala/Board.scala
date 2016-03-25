@@ -1,7 +1,6 @@
 package chess
 
 import Pos.posAt
-import scalaz.Validation.FlatMap._
 import variant.{ Variant, Crazyhouse }
 
 case class Board(
@@ -38,7 +37,7 @@ case class Board(
 
   def kingPosOf(c: Color): Option[Pos] = kingPos get c
 
-  def check(c: Color): Boolean = c.white.fold(checkWhite, checkBlack)
+  def check(c: Color): Boolean = if (c.white) checkWhite else checkBlack
 
   lazy val checkWhite = checkOf(White)
   lazy val checkBlack = checkOf(Black)
@@ -81,9 +80,14 @@ case class Board(
   def move(orig: Pos) = new {
     def to(dest: Pos): Valid[Board] = {
       if (pieces contains dest) failure("Cannot move to occupied " + dest)
-      else pieces get orig map { piece =>
-        copy(pieces = (pieces - orig) + ((dest, piece)))
-      } toSuccess ("No piece at " + orig + " to move")
+      else {
+        (pieces get orig map { piece =>
+          copy(pieces = (pieces - orig) + ((dest, piece)))
+        }) match {
+          case Some(e) => success(e)
+          case None => failure("No piece at " + orig + " to move")
+        }
+      }
     }
   }
 
@@ -117,9 +121,9 @@ case class Board(
 
   def withCrazyData(data: Crazyhouse.Data) = copy(crazyData = Some(data))
   def withCrazyData(data: Option[Crazyhouse.Data]) = copy(crazyData = data)
-  def withCrazyData(f: Crazyhouse.Data => Crazyhouse.Data): Board = withCrazyData(f(crazyData | Crazyhouse.Data.init))
+  def withCrazyData(f: Crazyhouse.Data => Crazyhouse.Data): Board = withCrazyData(f(crazyData getOrElse Crazyhouse.Data.init))
 
-  def ensureCrazyData = withCrazyData(crazyData | Crazyhouse.Data.init)
+  def ensureCrazyData = withCrazyData(crazyData getOrElse Crazyhouse.Data.init)
 
   def fixCastles: Board = withCastles {
     if (variant.allowsCastling) {
@@ -180,5 +184,5 @@ object Board {
   def empty(variant: Variant): Board = Board(Nil, variant)
 
   private def variantCrazyData(variant: Variant) =
-    (variant == Crazyhouse) option Crazyhouse.Data.init
+    if (variant == Crazyhouse) Some(Crazyhouse.Data.init) else None
 }

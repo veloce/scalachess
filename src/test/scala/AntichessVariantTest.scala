@@ -65,7 +65,7 @@ g4 {[%emt 0.200]} 34. Rxg4 {[%emt 0.172]} 0-1"""
       val invalidGame = gameAfterOpening flatMap (_.playMove(Pos.H2, Pos.H4))
 
       invalidGame must beFailure.like {
-        case failMsg => failMsg mustEqual scalaz.NonEmptyList("Piece on h2 cannot move to h4")
+        case failMsg => failMsg mustEqual NonEmptyList("Piece on h2 cannot move to h4")
       }
     }
 
@@ -245,14 +245,14 @@ g4 {[%emt 0.200]} 34. Rxg4 {[%emt 0.172]} 0-1"""
       val originalGame = fenToGame(position, Antichess)
 
       val newGame = originalGame flatMap(_.apply(Pos.B7, Pos.B8, Bishop.some)) map (_._1)
- 
+
       newGame must beSuccess.like {
         case nonDrawnGame =>
           nonDrawnGame.situation.end must beFalse
           nonDrawnGame.situation.autoDraw must beFalse
           nonDrawnGame.situation.status must beNone
       }
- 
+
     }
 
     "Not be drawn where a pawn is unattackable, but is blocked by a bishop, not a pawn" in {

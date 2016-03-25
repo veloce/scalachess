@@ -49,9 +49,9 @@ case class Turn(
   )
 
   def updateLast(f: Move => Move) = {
-    black.map(m => copy(black = f(m).some)) orElse
-      white.map(m => copy(white = f(m).some))
-  } | this
+    black.map(m => copy(black = Some(f(m)))) orElse
+      white.map(m => copy(white = Some(f(m))))
+  } getOrElse this
 
   def isEmpty = white.isEmpty && black.isEmpty
 
@@ -76,11 +76,11 @@ object Turn {
   def fromMoves(moves: List[Move], ply: Int): List[Turn] = {
     moves.foldLeft((List[Turn](), ply)) {
       case ((turns, p), move) if p % 2 == 1 =>
-        (Turn((p + 1) / 2, move.some, none) :: turns) -> (p + 1)
+        (Turn((p + 1) / 2, Some(move), None) :: turns) -> (p + 1)
       case ((Nil, p), move) =>
-        (Turn((p + 1) / 2, none, move.some) :: Nil) -> (p + 1)
+        (Turn((p + 1) / 2, None, Some(move)) :: Nil) -> (p + 1)
       case ((t :: tt, p), move) =>
-        (t.copy(black = move.some) :: tt) -> (p + 1)
+        (t.copy(black = Some(move)) :: tt) -> (p + 1)
     }
   }._1.reverse
 }

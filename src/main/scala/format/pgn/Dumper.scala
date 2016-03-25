@@ -14,7 +14,7 @@ object Dumper {
         orig.file + 'x' + dest.key
 
       case (promotion, Pawn) =>
-        captures.fold(orig.file + "x", "") +
+        (if (captures) orig.file + "x" else "") +
           promotion.fold(dest.key)(p => dest.key + "=" + p.pgn)
 
       case (_, role) => {
@@ -44,7 +44,7 @@ object Dumper {
           orig.file + orig.rank
         }
 
-        role.pgn + disambiguation + captures.fold("x", "") + dest.key
+        role.pgn + disambiguation + (if (captures) "x" else "") + dest.key
       }
     }) + {
       if (next.check) {

@@ -2,8 +2,6 @@ package chess
 package variant
 
 import Pos.posAt
-import scalaz.NonEmptyList
-import scalaz.Validation.FlatMap._
 
 abstract class Variant(
     val id: Int,
@@ -74,16 +72,25 @@ abstract class Variant(
     def findMove(from: Pos, to: Pos) = situation.moves get from flatMap (_.find(_.dest == to))
 
     for {
-      actor ← situation.board.actors get from toValid "No piece on " + from
-      myActor ← actor.validIf(actor is situation.color, "Not my piece on " + from)
-      m1 ← findMove(from, to) toValid "Piece on " + from + " cannot move to " + to
-      m2 ← m1 withPromotion promotion toValid "Piece on " + from + " cannot promote to " + promotion
-      m3 <- m2 validIf (isValidPromotion(promotion), "Cannot promote to " + promotion + " in this game mode")
+      actor ← ((situation.board.actors get from) match {
+        case Some(actor) => success(actor)
+        case None => failure("No piece on " + from)
+      })
+      myActor ← (if (actor is situation.color) success(actor) else failure("Not my piece on " + from))
+      m1 ← ((findMove(from, to)) match {
+        case Some(m1) => success(m1)
+        case None => failure("Piece on " + from + " cannot move to " + to)
+      })
+      m2 ← ((m1 withPromotion promotion) match {
+        case Some(m2) => success(m2)
+        case None => failure("Piece on " + from + " cannot promote to " + promotion)
+      })
+      m3 <- (if (isValidPromotion(promotion)) success(m2) else failure("Cannot promote to " + promotion + " in this game mode"))
     } yield m3
   }
 
   def drop(situation: Situation, role: Role, pos: Pos): Valid[Drop] =
-    s"$this variant cannot drop pieces".failureNel
+    failure(s"$this variant cannot drop pieces")
 
   def staleMate(situation: Situation): Boolean = !situation.check && situation.moves.isEmpty
 
@@ -179,8 +186,8 @@ object Variant {
 
   def apply(id: Int): Option[Variant] = byId get id
   def apply(key: String): Option[Variant] = byKey get key
-  def orDefault(id: Int): Variant = apply(id) | default
-  def orDefault(key: String): Variant = apply(key) | default
+  def orDefault(id: Int): Variant = apply(id) getOrElse default
+  def orDefault(key: String): Variant = apply(key) getOrElse default
 
   def byName(name: String): Option[Variant] =
     all find (_.name.toLowerCase == name.toLowerCase)

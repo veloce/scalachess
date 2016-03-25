@@ -55,7 +55,7 @@ class AtomicVariantTest extends ChessTest {
       val errorGame = maybeGame flatMap (_.playMoves((Pos.B1, Pos.C1)))
 
       errorGame must beFailure.like {
-        case failMsg => failMsg mustEqual scalaz.NonEmptyList("Piece on b1 cannot move to c1")
+        case failMsg => failMsg mustEqual NonEmptyList("Piece on b1 cannot move to c1")
       }
     }
 
@@ -244,7 +244,7 @@ class AtomicVariantTest extends ChessTest {
       val failureGame = game flatMap (_.playMoves((Pos.D8, Pos.D7)))
 
       failureGame must beFailure.like {
-        case failMsg => failMsg mustEqual scalaz.NonEmptyList("Piece on d8 cannot move to d7")
+        case failMsg => failMsg mustEqual NonEmptyList("Piece on d8 cannot move to d7")
       }
     }
 
@@ -268,7 +268,7 @@ class AtomicVariantTest extends ChessTest {
       val failureGame = game flatMap (_.playMoves((Pos.E8, Pos.D7)))
 
       failureGame must beFailure.like {
-        case failure => failure mustEqual scalaz.NonEmptyList("Piece on e8 cannot move to d7")
+        case failure => failure mustEqual NonEmptyList("Piece on e8 cannot move to d7")
       }
     }
 
@@ -327,7 +327,7 @@ class AtomicVariantTest extends ChessTest {
       val failureGame = game flatMap (_.playMoves((Pos.A4, Pos.C2)))
 
       failureGame must beFailure.like {
-        case failure => failure mustEqual scalaz.NonEmptyList("Piece on a4 cannot move to c2")
+        case failure => failure mustEqual NonEmptyList("Piece on a4 cannot move to c2")
       }
     }
 

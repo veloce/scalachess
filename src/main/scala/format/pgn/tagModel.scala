@@ -51,6 +51,6 @@ object Tag {
     value = value.toString)
 
   def tagType(name: String) =
-    (tagTypesByLowercase get name.toLowerCase) | Unknown(name)
+    (tagTypesByLowercase get name.toLowerCase) getOrElse Unknown(name)
 
 }

@@ -161,7 +161,7 @@ object Binary {
 
     def fullPawn(file: Option[String], pos: String, check: String, promotion: Option[String]) = List(
       (MoveType.FullPawn << 6) + posInt(pos),
-      (shiftOptionInt(file, pos) << 6) + (checkInts(check) << 4) + (promotionInts(promotion | "") << 1)
+      (shiftOptionInt(file, pos) << 6) + (checkInts(check) << 4) + (promotionInts(promotion getOrElse "") << 1)
     )
 
     def fullPiece(piece: String, orig: String, pos: String, capture: String, check: String) = List(

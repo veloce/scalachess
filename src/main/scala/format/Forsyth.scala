@@ -58,7 +58,7 @@ object Forsyth {
       val halfMoveClock = splitted lift 4 flatMap parseIntOption map (_ max 0 min 50)
       SituationPlus(
         halfMoveClock.map(sit.history.setHalfMoveClock).fold(sit)(sit.withHistory),
-        fullMoveNumber | 1)
+        fullMoveNumber getOrElse 1)
     }
   }
 

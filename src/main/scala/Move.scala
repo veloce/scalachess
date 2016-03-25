@@ -32,7 +32,7 @@ case class Move(
         kingPos ← after kingPosOf color
         side ← Side.kingRookSide(kingPos, orig)
         if h2 canCastle color on side
-      } yield h2.withoutCastle(color, side)) | h2
+      } yield h2.withoutCastle(color, side)) getOrElse h2
       else h2
     } fixCastles
 
@@ -58,12 +58,12 @@ case class Move(
   def color = piece.color
 
   def withPromotion(op: Option[PromotableRole]): Option[Move] =
-    op.fold(this.some) { p =>
+    op.fold(Option(this)) { p =>
       if ((after count color.queen) > (before count color.queen)) for {
         b2 ← after take dest
         b3 ← b2.place(color - p, dest)
       } yield copy(after = b3, promotion = Some(p))
-      else this.some
+      else Some(this)
     }
 
   def withAfter(newBoard: Board) = copy(after = newBoard)

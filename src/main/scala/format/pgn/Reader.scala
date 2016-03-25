@@ -2,7 +2,6 @@ package chess
 package format.pgn
 
 import format.Forsyth
-import scalaz.Validation.FlatMap._
 
 object Reader {
 
@@ -34,17 +33,18 @@ object Reader {
   } yield replay
 
   private def makeReplay(game: Game, sans: List[San]) =
-    sans.foldLeft[Valid[Replay]](Replay(game).success) {
+    sans.foldLeft[Valid[Replay]](success(Replay(game))) {
       case (replayValid, san) => for {
         replay ← replayValid
         move ← san(replay.state.situation)
       } yield replay addMove move
     }
 
-  private def makeGame(tags: List[Tag]) = Game(
-    variant = tags.find(_.name == Tag.Variant).map(_.value).flatMap(chess.variant.Variant.byName),
-    fen = tags.find(_.name == Tag.FEN).map(_.value)
-  ) |> { g =>
+  private def makeGame(tags: List[Tag]) = {
+    val g = Game(
+      variant = tags.find(_.name == Tag.Variant).map(_.value).flatMap(chess.variant.Variant.byName),
+      fen = tags.find(_.name == Tag.FEN).map(_.value)
+    )
     g.copy(startedAtTurn = g.turns)
   }
 }

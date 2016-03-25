@@ -3,7 +3,6 @@ package chess
 import chess.format.Forsyth
 import chess.format.pgn.San
 import format.pgn.{ Parser, Reader, Tag }
-import scalaz.Validation.FlatMap._
 
 case class Replay(setup: Game, moves: List[MoveOrDrop], state: Game) {
 
@@ -25,12 +24,15 @@ object Replay {
     moveStrs: List[String],
     initialFen: Option[String],
     variant: chess.variant.Variant): Valid[Replay] =
-    moveStrs.some.filter(_.nonEmpty) toValid "[replay] pgn is empty" flatMap { nonEmptyMoves =>
+    (Some(moveStrs).filter(_.nonEmpty) match {
+      case Some(nonEmptyMoves) => success(nonEmptyMoves)
+      case None => failure("[replay] pgn is empty")
+    }) flatMap { nonEmptyMoves =>
       Reader.moves(
         nonEmptyMoves,
         List(
           initialFen map { fen => Tag(_.FEN, fen) },
-          variant.some.filterNot(_.standard) map { v => Tag(_.Variant, v.name) }
+          Some(variant).filterNot(_.standard) map { v => Tag(_.Variant, v.name) }
         ).flatten)
     }
 
@@ -48,7 +50,7 @@ object Replay {
     initialFen: Option[String],
     variant: chess.variant.Variant): Valid[List[Game]] =
     Parser.moves(moveStrs, variant) flatMap { moves =>
-      val game = Game(variant.some, initialFen)
+      val game = Game(Some(variant), initialFen)
       recursiveGames(game, moves) map { game :: _ }
     }
 
@@ -59,7 +61,7 @@ object Replay {
     variant: chess.variant.Variant): (List[Game], Option[ErrorMessage]) = {
     def mk(g: Game, moves: List[San]): (List[Game], Option[ErrorMessage]) = moves match {
       case san :: rest => san(g.situation).fold(
-        err => (Nil, err.head.some),
+        err => (Nil, Some(err.head)),
         moveOrDrop => {
           val newGame = moveOrDrop.fold(g.apply, g.applyDrop)
           mk(newGame, rest) match {
@@ -68,9 +70,9 @@ object Replay {
         })
       case _ => (Nil, None)
     }
-    val init = Game(variant.some, initialFen.some)
+    val init = Game(Some(variant), Some(initialFen))
     Parser.moves(moveStrs, variant).fold(
-      err => Nil -> err.head.some,
+      err => Nil -> Some(err.head),
       moves => mk(init, moves)
     ) match {
         case (games, err) => (init :: games, err)
@@ -91,7 +93,7 @@ object Replay {
     initialFen: Option[String],
     variant: chess.variant.Variant): Valid[List[Board]] = {
     val sit = {
-      initialFen.flatMap(Forsyth.<<) | Situation(chess.variant.Standard)
+      initialFen.flatMap(Forsyth.<<) getOrElse Situation(chess.variant.Standard)
     } withVariant variant
     Parser.moves(moveStrs, sit.board.variant) flatMap { moves =>
       recursiveBoards(sit, moves) map { sit.board :: _ }
@@ -103,7 +105,7 @@ object Replay {
     initialFen: Option[String],
     variant: chess.variant.Variant,
     atFen: String): Valid[Int] =
-    if (Forsyth.<<@(variant, atFen).isEmpty) s"Invalid FEN $atFen".failureNel
+    if (Forsyth.<<@(variant, atFen).isEmpty) failure(s"Invalid FEN $atFen")
     else {
 
       // we don't want to compare the full move number, to match transpositions
@@ -113,18 +115,18 @@ object Replay {
 
       def recursivePlyAtFen(sit: Situation, sans: List[San], ply: Int): Valid[Int] =
         sans match {
-          case Nil => s"Can't find $atFenTruncated, reached ply $ply".failureNel
+          case Nil => failure(s"Can't find $atFenTruncated, reached ply $ply")
           case san :: rest => san(sit) flatMap { moveOrDrop =>
             val after = moveOrDrop.fold(_.finalizeAfter, _.finalizeAfter)
             val fen = Forsyth >> Game(after, Color(ply % 2 == 0), turns = ply)
-            if (compareFen(fen)) scalaz.Success(ply)
+            if (compareFen(fen)) Success(ply)
             else recursivePlyAtFen(Situation(after, !sit.color), rest, ply + 1)
           }
         }
 
       val sit = initialFen.flatMap {
         Forsyth.<<@(variant, _)
-      } | Situation(variant)
+      } getOrElse Situation(variant)
 
       Parser.moves(moveStrs, sit.board.variant) flatMap { moves =>
         recursivePlyAtFen(sit, moves, 1)

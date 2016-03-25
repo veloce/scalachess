@@ -9,9 +9,7 @@ sealed trait Uci {
   def origDest: (Pos, Pos)
 }
 
-object Uci
-    extends scalaz.std.OptionInstances
-    with scalaz.syntax.ToTraverseOps {
+object Uci {
 
   case class Move(
       orig: Pos,
@@ -86,13 +84,19 @@ object Uci
     else Uci.Move.piotr(move)
 
   def readList(moves: String): Option[List[Uci]] =
-    moves.split(' ').toList.map(apply).sequence
+    moves.split(' ').toList.map(apply)
+      .foldLeft(Option(List.empty[Uci])) { case (lo, eo) =>
+        lo.flatMap(l => eo.map(_ :: l))
+      }.map(_.reverse)
 
   def writeList(moves: List[Uci]): String =
     moves.map(_.uci) mkString " "
 
   def readListPiotr(moves: String): Option[List[Uci]] =
-    moves.split(' ').toList.map(piotr).sequence
+    moves.split(' ').toList.map(piotr)
+      .foldLeft(Option(List.empty[Uci])) { case (lo, eo) =>
+        lo.flatMap(l => eo.map(_ :: l))
+      }.map(_.reverse)
 
   def writeListPiotr(moves: List[Uci.Move]): String =
     moves.map(_.piotr) mkString " "

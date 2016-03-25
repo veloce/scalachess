@@ -62,7 +62,7 @@ case object RacingKings extends Variant(
     situation.color.white && reachedGoal(situation.board, White) && reachedGoal(situation.board, Black)
 
   override def winner(situation: Situation): Option[Color] =
-    specialEnd(situation) option Color(reachedGoal(situation.board, White))
+    if (specialEnd(situation)) Some(Color(reachedGoal(situation.board, White))) else None
 
   // Not only check that our king is safe,
   // but also check the opponent's

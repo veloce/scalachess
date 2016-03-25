@@ -92,7 +92,7 @@ case class RunningClock(
   }.toFloat
 
   def incrementOf(c: Color) =
-    c.fold(whiteBerserk, blackBerserk).fold(0, increment)
+    if (c.fold(whiteBerserk, blackBerserk)) 0 else increment
 
   def step(lag: FiniteDuration = 0.millis) = {
     val t = now

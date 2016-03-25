@@ -127,10 +127,12 @@ case class Actor(
     b3 ← b2.place(color.rook, newRookPos)
     b4 = b3 updateHistory (_ withoutCastles color)
     castle = Some((kingPos -> newKingPos, rookPos -> newRookPos))
-  } yield (board.variant == chess.variant.Chess960).fold(
-    List(rookPos),
-    List(rookPos, newKingPos).distinct
-  ) map { move(_, b4, castle = castle) }) getOrElse Nil
+  } yield {
+    (
+      if (board.variant == chess.variant.Chess960) List(rookPos)
+      else List(rookPos, newKingPos).distinct
+    ) map { move(_, b4, castle = castle) }
+  }) getOrElse Nil
 
   private def shortRange(dirs: Directions): List[Move] =
     dirs flatMap { _(pos) } filterNot friends flatMap { to =>

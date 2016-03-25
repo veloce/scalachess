@@ -27,7 +27,7 @@ object Speed {
 
   def apply(clock: Option[Clock]) = byTime(clock.fold(Int.MaxValue)(_.estimateTotalTime))
 
-  def byTime(seconds: Int): Speed = all.find(_.range contains seconds) | Correspondence
+  def byTime(seconds: Int): Speed = all.find(_.range contains seconds) getOrElse Correspondence
 
   def exists(id: Int): Boolean = byId contains id
 }

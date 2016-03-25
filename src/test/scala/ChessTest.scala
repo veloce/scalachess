@@ -5,7 +5,6 @@ import chess.variant.Variant
 import org.specs2.matcher.Matcher
 import org.specs2.mutable.Specification
 import ornicar.scalalib.test.ValidationMatchers
-import scalaz.{ Validation => V }
 
 trait ChessTest
     extends Specification
