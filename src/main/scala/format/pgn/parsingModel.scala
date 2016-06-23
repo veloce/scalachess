@@ -1,18 +1,32 @@
 package chess
 package format.pgn
 
-case class ParsedPgn(tags: List[Tag], sans: List[San]) {
+case class ParsedPgn(
+    initialPosition: InitialPosition,
+    tags: List[Tag],
+    sans: List[San]) {
 
-  def tag(name: String): Option[String] = {
-    val tagType = (Tag tagType name)
-    tags.find(_.name == tagType).map(_.value)
-  }
+  def tag(name: String): Option[String] = Tag.find(tags, name)
 }
 
 // Standard Algebraic Notation
 sealed trait San {
 
   def apply(situation: Situation): Valid[MoveOrDrop]
+
+  def metas: Metas
+
+  def withMetas(m: Metas): San
+
+  def withSuffixes(s: Suffixes): San = withMetas(metas withSuffixes s)
+
+  def withComments(s: List[String]): San = withMetas(metas withComments s)
+
+  def withVariations(s: List[List[San]]): San = withMetas(metas withVariations s)
+
+  def mergeGlyphs(glyphs: Glyphs): San = withMetas(
+    metas.withGlyphs(metas.glyphs merge glyphs)
+  )
 }
 
 case class Std(
@@ -21,16 +35,16 @@ case class Std(
     capture: Boolean = false,
     file: Option[Int] = None,
     rank: Option[Int] = None,
-    check: Boolean = false,
-    checkmate: Boolean = false,
-    promotion: Option[PromotableRole] = None) extends San {
-
-  def withSuffixes(s: Suffixes) = copy(
-    check = s.check,
-    checkmate = s.checkmate,
-    promotion = s.promotion)
+    promotion: Option[PromotableRole] = None,
+    metas: Metas = Metas.empty) extends San {
 
   def apply(situation: Situation) = move(situation) map Left.apply
+
+  override def withSuffixes(s: Suffixes) = copy(
+    metas = metas withSuffixes s,
+    promotion = s.promotion)
+
+  def withMetas(m: Metas) = copy(metas = m)
 
   def move(situation: Situation): Valid[chess.Move] =
     situation.board.pieces.foldLeft(Option.empty[chess.Move]) {
@@ -54,34 +68,49 @@ case class Std(
 case class Drop(
     role: Role,
     pos: Pos,
-    check: Boolean = false,
-    checkmate: Boolean = false) extends San {
-
-  def withSuffixes(s: Suffixes) = copy(
-    check = s.check,
-    checkmate = s.checkmate)
+    metas: Metas = Metas.empty) extends San {
 
   def apply(situation: Situation) = drop(situation) map Right.apply
+
+  def withMetas(m: Metas) = copy(metas = m)
 
   def drop(situation: Situation): Valid[chess.Drop] =
     situation.drop(role, pos)
 }
 
-case class Suffixes(
-  check: Boolean,
-  checkmate: Boolean,
-  promotion: Option[PromotableRole])
+case class InitialPosition(
+  comments: List[String])
 
-case class Castle(
-    side: Side,
-    check: Boolean = false,
-    checkmate: Boolean = false) extends San {
+case class Metas(
+    check: Boolean,
+    checkmate: Boolean,
+    comments: List[String],
+    glyphs: Glyphs,
+    variations: List[List[San]]) {
 
   def withSuffixes(s: Suffixes) = copy(
     check = s.check,
-    checkmate = s.checkmate)
+    checkmate = s.checkmate,
+    glyphs = s.glyphs)
+
+  def withGlyphs(g: Glyphs) = copy(glyphs = g)
+
+  def withComments(c: List[String]) = copy(comments = c)
+
+  def withVariations(v: List[List[San]]) = copy(variations = v)
+}
+
+object Metas {
+  val empty = Metas(false, false, Nil, Glyphs.empty, Nil)
+}
+
+case class Castle(
+    side: Side,
+    metas: Metas = Metas.empty) extends San {
 
   def apply(situation: Situation) = move(situation) map Left.apply
+
+  def withMetas(m: Metas) = copy(metas = m)
 
   def move(situation: Situation): Valid[chess.Move] = for {
     kingPos ← ((situation.board kingPosOf situation.color) match {
@@ -98,3 +127,9 @@ case class Castle(
     })
   } yield move
 }
+
+case class Suffixes(
+  check: Boolean,
+  checkmate: Boolean,
+  promotion: Option[PromotableRole],
+  glyphs: Glyphs)

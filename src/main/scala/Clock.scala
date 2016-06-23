@@ -37,7 +37,8 @@ sealed trait Clock {
 
   def estimateTotalTime = limit + estimateTotalIncrement
 
-  def emergTime: Int = math.round(math.min(20, math.max(2, estimateTotalTime / 15)))
+  // Emergency time cutoff, in seconds.
+  def emergTime: Int = math.round(math.min(60, math.max(10, limit / 8)))
 
   def stop: PausedClock
 
@@ -183,7 +184,7 @@ object Clock {
   // no more than this time will be offered to the lagging player
   val maxLagToCompensate = 1f
   // no more than this time to get the last move in
-  val maxGraceMillis = 800
+  val maxGraceMillis = 1000
 
   def apply(
     limit: Int,

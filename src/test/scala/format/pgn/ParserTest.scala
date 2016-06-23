@@ -1,5 +1,6 @@
 package chess
 package format.pgn
+import variant.Standard
 
 import Pos._
 
@@ -8,6 +9,7 @@ class ParserTest extends ChessTest {
   import Fixtures._
 
   val parser = Parser.full _
+  def parseMove(str: String) = Parser.MoveParser(str, Standard)
 
   "promotion check" should {
     "as a queen" in {
@@ -49,8 +51,58 @@ class ParserTest extends ChessTest {
     }
   }
 
+  "glyphs" in {
+    parseMove("e4") must beSuccess.like {
+      case a => a must_== Std(Pos.E4, Pawn)
+    }
+    parseMove("e4!") must beSuccess.like {
+      case a: Std =>
+        a.dest === Pos.E4
+        a.role === Pawn
+        a.metas.glyphs === Glyphs(Glyph.MoveAssessment.good.some, None, Nil)
+    }
+    parseMove("Ne7g6+?!") must beSuccess.like {
+      case a: Std =>
+        a.dest === Pos.G6
+        a.role === Knight
+        a.metas.glyphs === Glyphs(Glyph.MoveAssessment.dubious.some, None, Nil)
+    }
+    parser("Ne7g6+!") must beSuccess
+  }
+
   "nags" in {
     parser(withNag) must beSuccess
+
+    parser("Ne7g6+! $13") must beSuccess.like {
+      case ParsedPgn(_, _, List(san)) =>
+        san.metas.glyphs.move must_== Some(Glyph.MoveAssessment.good)
+        san.metas.glyphs.position must_== Some(Glyph.PositionAssessment.unclear)
+    }
+  }
+
+  "comments" in {
+    parser("Ne7g6+! {such a neat comment}") must beSuccess.like {
+      case ParsedPgn(_, _, List(san)) =>
+        san.metas.comments must_== List("such a neat comment")
+    }
+  }
+
+  "variations" in {
+    parser("Ne7g6+! {such a neat comment} (e4 Ng6)") must beSuccess.like {
+      case ParsedPgn(_, _, List(san)) =>
+        san.metas.variations.headOption must beSome.like {
+          case variation => variation must haveSize(2)
+        }
+    }
+  }
+
+  "first move variation" in {
+    parser("1. e4 (1. d4)") must beSuccess.like {
+      case ParsedPgn(_, _, List(san)) =>
+        san.metas.variations.headOption must beSome.like {
+          case variation => variation must haveSize(1)
+        }
+    }
   }
 
   raws foreach { sans =>
@@ -195,6 +247,13 @@ class ParserTest extends ChessTest {
   "overflow" in {
     parser(overflow) must beSuccess.like {
       case a => a.sans.size must_== 67
+    }
+  }
+  "chessbase arrows" in {
+    parser(chessbaseArrows) must beSuccess.like {
+      case a => a.initialPosition.comments must_== List(
+        "[%csl Gb4,Yd5,Rf6][%cal Ge2e4,Ye2d4,Re2g4]"
+      )
     }
   }
 }

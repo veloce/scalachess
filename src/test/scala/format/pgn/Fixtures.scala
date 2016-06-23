@@ -26,6 +26,48 @@ object Fixtures {
     "e3 e5 d3 f5 Qe2 d5 Bd2 Nd7 Nc3 Ngf6 0-0-0 Bb4"
   )
 
+  val recentChessCom = """[Event "Live Chess"]
+[Site "Chess.com"]
+[Date "2016.05.10"]
+[Round "?"]
+[White "LyonBeast"]
+[Black "FabianoCaruana"]
+[Result "0-1"]
+[WhiteElo "2747"]
+[BlackElo "2699"]
+[ECO "A00"]
+[TimeControl "300+2"]
+[Termination "FabianoCaruana won by resignation"]
+[Annotator "Komodo 9.01 64-bit"]
+[CurrentPosition "3r2k1/p3n1p1/1p5p/2q1p3/2P1B1R1/2Q1P3/P5PP/3r1R1K w - - 6 28"]
+
+1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3 Be7 5.Bg5 h6 6.Bh4 O-O 7.e3 Ne4 8.Bxe7 Qxe7 9.cxd5 Nxc3 10.bxc3 exd5 11.Qb3 Rd8 12.c4 Be6 13.Rc1 c5 14.dxc5 Qxc5 15.Nd4 Nc6 16.Nxe6 fxe6 17.Be2 d4 18.O-O dxe3 19.fxe3 Ne5 20.Kh1 b6 21.Qc3 Rd6 22.Rf4 Rad8 23.Re4 Nc6 24.Rf1 e5 25.Rg4 Rd2 26.Bf3 Ne7 27.Be4 Rd1 28.Kg1? ( 28.Rg1! { Forced, but Black is clearly much, much better. The silicon companion says Kh8 is now best. #shrug } ) 28...b5? ( 28...R8d3! { This classic interference tactic just ends the game. } 29.Bxd3 Qxe3+ 30.Kh1 Rxf1+ 31.Bxf1 Qxc3 ) 29.Bc2? ( 29.Rxd1 Rxd1+ 30.Kf2 { Black clearly still has a big plus, but is not yet winning. } ) 29...Rxf1+ 30.Kxf1 Nd5 31.Rxg7+ Kf8! { Black simply leaves White to deal with the hanging queen, e3 pawn, and rook. } ( 31...Kxg7? 32.Qxe5+ Kf8 33.Qh8+ Ke7 34.Qe5+ Kf7 35.cxd5 { Unclear. } ) ( 31...Kh8? 32.Rh7+ Kg8 33.Rh8+! ) 
+0-1
+"""
+
+  val fromPosProdCloseChess = """
+[FEN "8/rnbqkbnr/pppppppp/8/8/PPPPPPPP/RNBQKBNR/8 w - - 0 1"]                                                                     [12/1807]
+1. d4 d5 2. Nf4 Nf5 3. g4 g5 4. gxf5 exf5
+5. Nbd3 gxf4 6. Nxf4 Bxf4 7. exf4 Nd6 8. Bh4 Qd8
+9. Bd3 Kd7 10. Kf1 Kc8 11. Rg2 Kb8 12. Qe1 Bh5
+13. Qf2 Rh8 14. Re2 Bf7 15. Rg3 a5 16. Rg2 a4
+17. b4 Rf8 18. Re3 Nc4 19. Bxc4 dxc4 20. Kg1 Qd6
+21. Qd2 Rc7 22. Kh2 b5 23. Rg7 Kb7 24. Re1 Bh5
+25. Rxc7+ Kxc7 26. Qe2 Kd7 27. Rf1 Rg8 28. Qd2 Re8
+29. Qf2 Qxf4+ 30. Kg2 Bxf3+ 31. Qxf3 Qxh4 32. Qxf5+ Kc7
+33. Qf4+ Qxf4 34. Rxf4 Re2+ 35. Rf2 Re3 36. Rf3 Rd3
+37. Kf2 Rd2+ 38. Ke1 Ra2 39. Rxf6 h5 40. Rf7+ Kd6
+41. Rf5 Rxa3 42. Kd2 Ra2+ 43. Kc1 h4 44. Rf4 a3
+45. Kb1 Rb2+ 46. Ka1 Kd5 47. Rxh4 Rc2 48. Rh8 Rxc3
+49. Ka2 Rb3 50. Rd8+ Ke4 51. h4 Rxb4 52. Kxa3 Rb3+
+53. Ka2 Rh3 54. Rd6 b4 55. Rxc6 Kxd4 56. Rg6 Rh2+
+57. Kb1 c3 58. Kc1 Kc4 59. Kd1 Kb3 60. Rc6 c2+
+61. Kc1 Rh1+ 62. Kd2 Rd1+ 63. Ke2 c1=Q 64. Rxc1 Rxc1
+65. Kf3 Rh1 66. Ke3 Kc4 67. Kf3 Rxh4 68. Kg2 b3
+69. Kg3 Rd4 70. Kh3 b2 71. Kg3 b1=R 72. Kf3 Rb3+
+73. Ke2 Rdd3 74. Kf2 Rd2+ 75. Ke1 Ra2 76. Kd1 Rb1#
+"""
+
   val noTagButResult = "1.g4 e5 2.d4 e4 3.c4 Qh4 4.h3 Bb4+ 5.Nc3 Bxc3+ 6.bxc3 Qe7 7.Bf4 d6 8.e3 g5 9.Bg3 Be6 10.Rb1 Bc8 11.Be2 Nf6 12.h4 gxh4 13.Bxh4 Qe6 14.g5 Nfd7 15.Nh3 Rg8 16.Nf4 Qe7 17.Nd5 Qd8 18.g6 f6 19.gxh7 1-0"
 
   val inlineTags = """
@@ -1075,6 +1117,20 @@ g6 59. Ra5 Ncd7 60. Kd2 Nf8 61. Ra6+ Ne6 62. h4 Ng4 63. Bxe6 fxe6 64. Kd3 Ne5+
 65. Ke4 Ng4 66. Kd4 Ne5 67. Ra8 Nd7 68. Rc8 Ke7 69. e4 Nf6 70. Rc7+ Kd6 71. Rg7
 Ng4 1-0"""
 
+val chessbaseArrows = """[Event "?"]
+[Site "?"]
+[Date "2016.05.23"]
+[Round "?"]
+[White "Pgn pour thibault fleches"]
+[Black "?"]
+[Result "*"]
+[ECO "A00"]
+[PlyCount "0"]
+[SourceDate "2016.05.23"]
+
+{[%csl Gb4,Yd5,Rf6][%cal Ge2e4,Ye2d4,Re2g4]} 1. e4 {[%csl Gb4,Yd5,Rf6] blabla}
+"""
+
 val commentsAndVariations = """
 [Event "ICC"]
 [Site "Internet Chess Club"]
@@ -1288,7 +1344,27 @@ Kd5 48. Nb6+ Ke6 49. Kg7 Bh5 50. a4 Be8 51. a5 Bh5 52. a6 Ke5 53. f7 Bxf7 54. Kx
 h5 c3 60. Qc4+ Kd2 61. Na4 c2 62. Qc3+ Ke2 63. Qxc2+ Ke1 64. Kf6 Kf1 65. Kf5 Ke1 66. Kf4 Kf1 67. Kf3 Ke1 68. Qe2# 1-0"""
 
 val variations = """
-1. e4 d6 2. d4 c6  3. f4  Qc7 4. Nf3 h6 $6  5. Bd3 (  5. Bc4  e6) 5... Bg4 6. O-O Nd7  7. Nc3 a6 $6  8. Be3 e5 $2  9. fxe5 dxe5 10. d5 $1 ( 10. dxe5 $2 Nxe5 ) 10... c5 (10... cxd5 $6 11. Nxd5 ) ( 10... Ngf6 11. dxc6 ) 
+1. e4 (1. d4 d5) d6 (1... d5 2. h3) 2. d4 {choudidou d4} (2. d3 h6 3. h3) c6 {yep c6!} 3. f4  Qc7 4. Nf3 h6 $6  5. Bd3 (  5. Bc4  e6) 5... Bg4 6. O-O Nd7  7. Nc3 a6 $6  8. Be3 e5 $2  9. fxe5 dxe5 10. d5 $1 ( 10. dxe5 $2 Nxe5 ) 10... c5 (10... cxd5 $6 11. Nxd5 ) ( 10... Ngf6 11. dxc6 ) 
+"""
+
+val caissa = """
+[Event "Anime Boston Cosplay Chess 2013 pt 3"]
+[Site "?"]
+[Date "2013.??.??"]
+[Round "3"]
+[White "Living"]
+[Black "Spirit"]
+[Result "0-1"]
+[WhiteELO "?"]
+[BlackELO "?"]
+[SetUp "1"]
+[FEN "b5nr/1p2kB1p/2p3p1/4p1q1/p1P5/N3RP2/P7/4K3 b KQkq - 0 22"]
+
+%Created by Caissa's Web PGN Editor
+22... Nf6 23. Rxe5+?? Kxf7?? 24. Ra5?? Qg1+? 25. Ke2 h5 26. Rxa8? h4?? 27.
+Nc2?? h3?? 28. Rxa4 Rh4 29. f4? Rxf4 30. Kd3 b5 31. Nd4?? bxa4 32. c5 Qa1 33.
+Nxc6 Nd7 34. Nd8+ Ke7 35. c6 Qxa2 36. cxd7 Kxd8 37. Ke3 Kxd7 38. Kxf4 h2 39.
+Kg5 h1=Q 40. Kxg6 Qf2 41. Kg7 Qhg1+ 42. Kh7 Qfh2# 0-1
 """
 
 val handwritten = """
@@ -1397,7 +1473,7 @@ Re3d3 Rd4xd3 46. Be4xd3 Kd6d5 47. Bd3b5 Kd5c5 48. a3a4 Kc5b4 49. Kf5xe5 a7a6 50.
 
 val atomicPromotion = """
 [Event "Rated game"]
-[Site "http://lichess.org/MyjOSGx4"]
+[Site "https://lichess.org/MyjOSGx4"]
 [Date "2015.02.25"]
 [White "AngryBishop"]
 [Black "Nyanta"]
@@ -1423,7 +1499,7 @@ Qxd1 Rd8 25. Qc2 cxb3 26. Qxb3+ Kg7 27. Qc3+ Kh6 28. Qh3+ Qh5 29. Qe3+ Qg5 30. Q
 
 val lichobile = """
 [Event "Casual game"]
-[Site "http://lichess.org"]
+[Site "https://lichess.org"]
 [Date "2015.12.13"]
 [Result "0-1"]
 [Variant "Standard"]
@@ -1465,8 +1541,8 @@ s earlier, but I like the looks of this counter play I'm going to get against hi
 nd I worked out a draw. However, this guy is usually a regular costumer for me and I got cocky and decided to go for the win. After Rb4, it dawned on me just how poor my position really was and I began to get very worried. I usually have a really good idea for evaluation of positions, but I began to see no real concrete threats and wondered if I 
 had mis-evaluated my attack.} 22. Qa3 Nxd4 23. exd4 Bc6 24. Nb3 Qd6 {I'm still in a worse position, but he hasn't defended accurately. Stockfish put the position around +1.6 in his favor, which isn't a good sign considering I'm a piece down. I try a cheapo with Qd6} 25. Qb2 a5 26. Qd2 a4 {all of a sudden I 
 feel like I've turned around my position. I calculated that Qh6 isn't going to be mating and my attack is coming MUCH sooner. I feel hopeful again. I have around 1 minute} 27. Qxh6?? axb3 {Joy!}28. Bd3!? {Pain. I have a minute on my clock and I missed his bishop idea. I knew that Qh7+ wasnt mate and stopped calculating his attack to conserve time
-. What I missed was the Bishop check with Queen on h6 idea that I had seen a million times on tactics trainers. What I didn't know, was that I played the right move, and actually stockfish gives this position -3.5 in my favor. I found the correct idea, but I missed the follow up and ruined a great knockout. 30 seconds on my clock} Rxc4!? 29. Bxc4
-?? (29. Bxc4?? bxa2!! 30.Kc2 Be4+ 31. Bd3 Qxd4! 32. Qc1 Qc4+ 33.Kd2 Qxd3+ 34. Ke1 Rb1! 35. Rxd3 Rxc1+ 36. Kd2 Rxg1 {this is the best line stockfish can come up with for whiteafter Bxc4}) Qa3+?? {this super blunders the game back in his direction. After taking the rook the position is around -10.0 for black} 30. Kd2 Qb2+ 31. Ke3 Qc3+ 32. Bd3 e5? 
+. What I missed was the Bishop check with Queen on h6 idea that I had seen a million times on tactics trainers. What I didn't know, was that I played the right move, and actually stockfish gives this position -3.5 in my favor. I found the correct idea, but I missed the follow up and ruined a great knockout. 30 seconds on my clock} Rxc4!? 29. Bxc4?? 
+(29. Bxc4?? bxa2!! 30.Kc2 Be4+ 31. Bd3 Qxd4! 32. Qc1 Qc4+ 33.Kd2 Qxd3+ 34. Ke1 Rb1! 35. Rxd3 Rxc1+ 36. Kd2 Rxg1 {this is the best line stockfish can come up with for whiteafter Bxc4}) Qa3+?? {this super blunders the game back in his direction. After taking the rook the position is around -10.0 for black} 30. Kd2 Qb2+ 31. Ke3 Qc3+ 32. Bd3 e5? 
 33. Qh7+ Kf8 34. Qh8+ {resigns}
 [/pgn]
 """

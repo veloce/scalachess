@@ -17,7 +17,7 @@ case class Game(
     dest: Pos,
     promotion: Option[PromotableRole] = None,
     lag: FiniteDuration = 0.millis): Valid[(Game, Move)] =
-    situation.move(orig, dest, promotion).map(_ withLag lag) map { move =>
+    situation.move(orig, dest, promotion).map(_.normalizeCastle withLag lag) map { move =>
       apply(move) -> move
     }
 
@@ -90,9 +90,12 @@ object Game {
     board = Board init variant
   )
 
-  def apply(variant: Option[chess.variant.Variant], fen: Option[String]): Game = {
-    val g = apply(variant getOrElse chess.variant.Standard)
-    fen.flatMap(format.Forsyth.<<<).fold(g) { parsed =>
+  def apply(variantOption: Option[chess.variant.Variant], fen: Option[String]): Game = {
+    val variant = variantOption getOrElse chess.variant.Standard
+    val g = apply(variant)
+    fen.flatMap {
+      format.Forsyth.<<<@(variant, _)
+    }.fold(g) { parsed =>
       g.copy(
         board = parsed.situation.board withVariant g.board.variant withCrazyData {
           parsed.situation.board.crazyData orElse g.board.crazyData
