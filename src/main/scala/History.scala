@@ -18,7 +18,8 @@ case class History(
     lastMove: Option[Uci] = None,
     positionHashes: PositionHash = History.randomHashes(1),
     castles: Castles = Castles.all,
-    checkCount: CheckCount = CheckCount(0, 0)) {
+    checkCount: CheckCount = CheckCount(0, 0),
+    unmovedRooks: Set[Pos] = Pos.allBackrank) {
 
   /**
    * Halfmove clock: This is the number of halfmoves
@@ -33,7 +34,8 @@ case class History(
     copy(positionHashes = History.randomHashes(v + 1))
 
   def threefoldRepetition: Boolean = halfMoveClock >= 8 && {
-    val positions = (positionHashes grouped Hash.size).toList
+    // compare only hashes for positions with the same side to move
+    val positions = (positionHashes grouped Hash.size).sliding(1, 2).flatten.toList
     positions.headOption match {
       case Some(Array(x, y, z)) => (positions count {
         case Array(x2, y2, z2) => x == x2 && y == y2 && z == z2
@@ -76,17 +78,19 @@ object History {
   def make(
     lastMove: Option[Uci],
     positionHashes: PositionHash,
-    castles: Castles): History = new History(
+    castles: Castles,
+    unmovedRooks: Set[Pos] = Pos.allBackrank): History = new History(
     lastMove = lastMove,
     castles = castles,
-    positionHashes = positionHashes)
+    positionHashes = positionHashes,
+    unmovedRooks = unmovedRooks)
 
   def make(
     lastMove: Option[String], // a2a4
     castles: String): History = make(
     lastMove = lastMove flatMap Uci.apply,
-    positionHashes = Array(),
-    castles = Castles(castles))
+    castles = Castles(castles),
+    positionHashes = Array())
 
   def castle(color: Color, kingSide: Boolean, queenSide: Boolean) =
     History().copy(

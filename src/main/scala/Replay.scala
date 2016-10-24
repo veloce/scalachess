@@ -1,7 +1,7 @@
 package chess
 
 import chess.format.pgn.San
-import chess.format.{ Forsyth, Uci }
+import chess.format.{ Forsyth, FEN, Uci }
 import format.pgn.{ Parser, Reader, Tag }
 
 case class Replay(setup: Game, moves: List[MoveOrDrop], state: Game) {
@@ -31,9 +31,9 @@ object Replay {
       Reader.moves(
         nonEmptyMoves,
         List(
-          initialFen map { fen => Tag(_.FEN, fen) },
-          Some(variant).filterNot(_.standard) map { v => Tag(_.Variant, v.name) }
-        ).flatten)
+        initialFen map { fen => Tag(_.FEN, fen) },
+        Some(variant).filterNot(_.standard) map { v => Tag(_.Variant, v.name) }
+      ).flatten)
     }
 
   private def recursiveGames(game: Game, sans: List[San]): Valid[List[Game]] =
@@ -90,16 +90,35 @@ object Replay {
       }
     }
 
+  private def recursiveBoardsFromUci(sit: Situation, ucis: List[Uci]): Valid[List[Board]] =
+    ucis match {
+      case Nil => success(Nil)
+      case uci :: rest => uci(sit) flatMap { moveOrDrop =>
+        val after = moveOrDrop.fold(_.afterWithLastMove, _.afterWithLastMove)
+        recursiveBoardsFromUci(Situation(after, !sit.color), rest) map { after :: _ }
+      }
+    }
+
+  private def initialFenToSituation(initialFen: Option[FEN], variant: chess.variant.Variant): Situation = {
+    initialFen.flatMap { fen => Forsyth << fen.value } getOrElse Situation(chess.variant.Standard)
+  } withVariant variant
+
   def boards(
     moveStrs: List[String],
-    initialFen: Option[String],
+    initialFen: Option[FEN],
     variant: chess.variant.Variant): Valid[List[Board]] = {
-    val sit = {
-      initialFen.flatMap(Forsyth.<<) getOrElse Situation(chess.variant.Standard)
-    } withVariant variant
+    val sit = initialFenToSituation(initialFen, variant)
     Parser.moves(moveStrs, sit.board.variant) flatMap { moves =>
       recursiveBoards(sit, moves) map { sit.board :: _ }
     }
+  }
+
+  def boardsFromUci(
+    moves: List[Uci],
+    initialFen: Option[FEN],
+    variant: chess.variant.Variant): Valid[List[Board]] = {
+    val sit = initialFenToSituation(initialFen, variant)
+    recursiveBoardsFromUci(sit, moves) map { sit.board :: _ }
   }
 
   def plyAtFen(

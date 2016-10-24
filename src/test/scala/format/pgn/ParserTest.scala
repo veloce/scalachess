@@ -68,6 +68,12 @@ class ParserTest extends ChessTest {
         a.metas.glyphs === Glyphs(Glyph.MoveAssessment.dubious.some, None, Nil)
     }
     parser("Ne7g6+!") must beSuccess
+    parseMove("P@e4?!") must beSuccess.like {
+      case a: Drop =>
+        a.pos === Pos.E4
+        a.role === Pawn
+        a.metas.glyphs === Glyphs(Glyph.MoveAssessment.dubious.some, None, Nil)
+    }
   }
 
   "nags" in {
@@ -249,11 +255,31 @@ class ParserTest extends ChessTest {
       case a => a.sans.size must_== 67
     }
   }
+  "overflow 2" in {
+    parser(stackOverflow) must beSuccess.like {
+      case a => a.sans.size must_== 8
+    }
+  }
+  "overflow 3" in {
+    parser(overflow3) must beSuccess.like {
+      case a => a.sans.size must_== 343
+    }
+  }
+  "overflow 3: tags" in {
+    Parser.TagParser.fromFullPgn(overflow3) must beSuccess.like {
+      case tags => tags.size must_== 9
+    }
+  }
   "chessbase arrows" in {
     parser(chessbaseArrows) must beSuccess.like {
       case a => a.initialPosition.comments must_== List(
         "[%csl Gb4,Yd5,Rf6][%cal Ge2e4,Ye2d4,Re2g4]"
       )
+    }
+  }
+  "crazyhouse from prod" in {
+    parser(crazyhouseFromProd) must beSuccess.like {
+      case a => a.sans.size must_== 49
     }
   }
 }

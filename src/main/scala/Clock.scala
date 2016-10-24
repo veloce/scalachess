@@ -125,8 +125,8 @@ case class RunningClock(
   def giveTime(c: Color, t: Float): RunningClock = addTime(c, -t)
 
   def berserk(c: Color): RunningClock = addTime(c, Clock.berserkPenalty(this, color)).copy(
-    whiteBerserk = c.fold(true, whiteBerserk),
-    blackBerserk = c.fold(blackBerserk, true))
+    whiteBerserk = whiteBerserk || c.white,
+    blackBerserk = blackBerserk || c.black)
 
   def switch: RunningClock = copy(color = !color)
 
@@ -203,18 +203,20 @@ object Clock {
     else clock
   }
 
+  private val limitFormatter = new DecimalFormat("#.##")
+
   def showLimit(limit: Int) = limit match {
     case l if l % 60 == 0 => l / 60
     case 30               => "½"
     case 45               => "¾"
     case 90               => "1.5"
-    case _                => new DecimalFormat("#.##").format(limit / 60d)
+    case _                => limitFormatter.format(limit / 60d)
   }
 
   private[chess] def berserkPenalty(clock: Clock, color: Color): Int = {
     val incTime = clock.estimateTotalIncrement
     val iniTime = clock.limit
-    if (iniTime < incTime / 2) 0 else iniTime / 2
+    if (iniTime < incTime) 0 else iniTime / 2
   }.toInt
 
   def timeString(t: Int) = s"${t}s"

@@ -199,8 +199,8 @@ object Parser {
 
     val kCastle: Parser[Side] = ("O-O" | "o-o" | "0-0") ^^^ KingSide
 
-    def standard: Parser[Std] = as("standard") {
-      (disambiguatedPawn | pawn | disambiguated | ambiguous) ~ suffixes ^^ {
+    def standard: Parser[San] = as("standard") {
+      (disambiguatedPawn | pawn | disambiguated | ambiguous | drop) ~ suffixes ^^ {
         case std ~ suf => std withSuffixes suf
       }
     }
@@ -216,6 +216,13 @@ object Parser {
     def ambiguous: Parser[Std] = as("ambiguous") {
       role ~ x ~ dest ^^ {
         case ro ~ ca ~ de => Std(dest = de, role = ro, capture = ca)
+      }
+    }
+
+    // B@g5
+    def drop: Parser[Drop] = as("drop") {
+      role ~ "@" ~ dest ^^ {
+        case ro ~ _ ~ po => Drop(role = ro, pos = po)
       }
     }
 
@@ -283,6 +290,11 @@ object Parser {
       case err              => chess.failure("Cannot parse tags: %s\n%s".format(err.toString, pgn))
     }
 
+    def fromFullPgn(pgn: String): Valid[List[Tag]] =
+      splitTagAndMoves(pgn) flatMap {
+        case (tags, _) => apply(tags)
+      }
+
     def all: Parser[List[Tag]] = as("all") {
       tags <~ """(.|\n)*""".r
     }
@@ -302,8 +314,12 @@ object Parser {
     }
   }
 
+  // there must be a newline between the tags and the first move
+  private def ensureTagsNewline(pgn: String): String =
+    """"\]\s*(\d+\.)""".r.replaceAllIn(pgn, m => "\"]\n" + m.group(1))
+
   private def splitTagAndMoves(pgn: String): Valid[(String, String)] =
-    pgn.lines.toList.map(_.trim).filter(_.nonEmpty) span { line =>
+    ensureTagsNewline(pgn).lines.toList.map(_.trim).filter(_.nonEmpty) span { line =>
       line lift 0 contains '['
     } match {
       case (tagLines, moveLines) => success(tagLines.mkString("\n") -> moveLines.mkString("\n"))
