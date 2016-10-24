@@ -2,8 +2,6 @@ package chess
 
 import scala.concurrent.duration._
 
-import java.text.DecimalFormat
-
 // All durations are expressed in seconds
 sealed trait Clock {
   val limit: Int
@@ -203,14 +201,12 @@ object Clock {
     else clock
   }
 
-  private val limitFormatter = new DecimalFormat("#.##")
-
   def showLimit(limit: Int) = limit match {
     case l if l % 60 == 0 => l / 60
     case 30               => "½"
     case 45               => "¾"
     case 90               => "1.5"
-    case _                => limitFormatter.format(limit / 60d)
+    case _                => limit.toString
   }
 
   private[chess] def berserkPenalty(clock: Clock, color: Color): Int = {
