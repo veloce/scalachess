@@ -26,6 +26,14 @@ object Fixtures {
     "e3 e5 d3 f5 Qe2 d5 Bd2 Nd7 Nc3 Ngf6 0-0-0 Bb4"
   )
 
+  // https://github.com/ornicar/lila/issues/2441
+  val enpassantEP = """
+1. d4 Nf6 2. c4 e6 3. Nf3 c5 4. d5 exd5 5. cxd5 d6 6. Nc3 g6 7. Nd2 Bg7 8. e4 O-O 9. Be2 Na6 10. O-O Qe7 11. Re1 Nc7 12. a4 b6 13. h3 Nd7 14. Nb5 Nxb5 15. axb5 Qd8 16. Ra4 Nf6 17. Nf3 a5 18. bxa6 e.p. Bd7 1-0
+"""
+  val enpassantEP2 = """
+1. d4 Nf6 2. c4 e6 3. Nf3 c5 4. d5 exd5 5. cxd5 d6 6. Nc3 g6 7. Nd2 Bg7 8. e4 O-O 9. Be2 Na6 10. O-O Qe7 11. Re1 Nc7 12. a4 b6 13. h3 Nd7 14. Nb5 Nxb5 15. axb5 Qd8 16. Ra4 Nf6 17. Nf3 a5 18. bxa6e.p. Bd7 1-0
+"""
+
   val recentChessCom = """[Event "Live Chess"]
 [Site "Chess.com"]
 [Date "2016.05.10"]
@@ -42,6 +50,25 @@ object Fixtures {
 [CurrentPosition "3r2k1/p3n1p1/1p5p/2q1p3/2P1B1R1/2Q1P3/P5PP/3r1R1K w - - 6 28"]
 
 1.d4 Nf6 2.c4 e6 3.Nf3 d5 4.Nc3 Be7 5.Bg5 h6 6.Bh4 O-O 7.e3 Ne4 8.Bxe7 Qxe7 9.cxd5 Nxc3 10.bxc3 exd5 11.Qb3 Rd8 12.c4 Be6 13.Rc1 c5 14.dxc5 Qxc5 15.Nd4 Nc6 16.Nxe6 fxe6 17.Be2 d4 18.O-O dxe3 19.fxe3 Ne5 20.Kh1 b6 21.Qc3 Rd6 22.Rf4 Rad8 23.Re4 Nc6 24.Rf1 e5 25.Rg4 Rd2 26.Bf3 Ne7 27.Be4 Rd1 28.Kg1? ( 28.Rg1! { Forced, but Black is clearly much, much better. The silicon companion says Kh8 is now best. #shrug } ) 28...b5? ( 28...R8d3! { This classic interference tactic just ends the game. } 29.Bxd3 Qxe3+ 30.Kh1 Rxf1+ 31.Bxf1 Qxc3 ) 29.Bc2? ( 29.Rxd1 Rxd1+ 30.Kf2 { Black clearly still has a big plus, but is not yet winning. } ) 29...Rxf1+ 30.Kxf1 Nd5 31.Rxg7+ Kf8! { Black simply leaves White to deal with the hanging queen, e3 pawn, and rook. } ( 31...Kxg7? 32.Qxe5+ Kf8 33.Qh8+ Ke7 34.Qe5+ Kf7 35.cxd5 { Unclear. } ) ( 31...Kh8? 32.Rh7+ Kg8 33.Rh8+! ) 
+0-1
+"""
+
+  val chessComCrazyhouse = """
+[Event "Live Chess - Crazyhouse"]
+[Site "Chess.com"]
+[Date "2016.11.30"]
+[White "eekarf"]
+[Black "JannLeeCrazyhouse"]
+[Result "0-1"]
+[ECO "C46"]
+[WhiteElo "2071"]
+[BlackElo "2593"]
+[TimeControl "180"]
+[Termination "JannLeeCrazyhouse won by checkmate"]
+[Variant "Crazyhouse"]
+[CurrentPosition "r1bBk1r1/ppp2p1p/1b1p3p/3Pp3/6N1/2PPn2n/PP2B1pP/R2Q3K w q - 0 22 QNrp"]
+
+1.e4 e5 2.Nf3 Nc6 3.Nc3 Bc5 4.Be2 Nf6 5.O-O d6 6.d3 Nd4 7.Nxd4 Bxd4 8.Nd5 Nxd5 9.exd5 N@f6 10.c3 Bb6 11.Bg5 N@f4 12.N@e4 Rg8 13.N@h6 Nxe4 14.Bxd8 N@h3+ 15.gxh3 Nxh3+ 16.Kh1 Nexf2+ 17.Rxf2 Nxf2+ 18.Kg2 gxh6+ 19.N@g4 N@e3+ 20.Kg1 Nh3+ 21.Kh1 @g2# 
 0-1
 """
 

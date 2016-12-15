@@ -55,7 +55,11 @@ object Forsyth {
         } yield Uci.Move(orig, dest)
 
         situation withHistory {
-          val history = History.make(lastMove, Array.empty, castles, unmovedRooks)
+          val history = History(
+            lastMove = lastMove,
+            positionHashes = Array.empty,
+            castles = castles,
+            unmovedRooks = UnmovedRooks(unmovedRooks))
           (splitted lift 6 flatMap makeCheckCount).fold(history)(history.withCheckCount)
         }
       } fixCastles
@@ -121,7 +125,8 @@ object Forsyth {
     case Nil => Some(Nil)
     case c :: rest => c match {
       case n if n.toInt < 58 =>
-        makePieces(rest,
+        makePieces(
+          rest,
           if (n.toInt > 48) tore(pos, n.toInt - 48) getOrElse pos
           else pos)
       case n => Role forsyth n.toLower map { role =>
@@ -136,19 +141,20 @@ object Forsyth {
     case Nil => Some(Nil -> Set.empty)
     case c :: rest => c match {
       case '~' => pos match {
-        case Pos.A1 => Some(Nil -> Set(Pos.H1)) // last piece is promoted
+        case Pos.A8 => Some(Nil -> Set(Pos.H1)) // last piece is promoted
         case pos => for {
           prevPos <- tore(pos, -1)
           (nextPieces, nextPromoted) <- makePiecesWithCrazyPromoted(rest, pos)
         } yield nextPieces -> (nextPromoted + prevPos)
       }
       case n if n.toInt < 58 =>
-        makePiecesWithCrazyPromoted(rest,
+        makePiecesWithCrazyPromoted(
+          rest,
           if (n.toInt > 48) tore(pos, n.toInt - 48) getOrElse pos
           else pos)
       case n => for {
         role <- Role forsyth n.toLower
-        nextPos = tore(pos, 1) getOrElse Pos.A1
+        nextPos = tore(pos, 1) getOrElse Pos.A8
         (nextPieces, nextPromoted) <- makePiecesWithCrazyPromoted(rest, nextPos)
       } yield ((pos, Piece(Color(n.isUpper), role)) :: nextPieces) -> nextPromoted
     }
@@ -202,8 +208,8 @@ object Forsyth {
       case (pos, piece) if pos.y == Black.backrankY && piece == Black.rook => pos
     }
 
-    lazy val wur = board.unmovedRooks.filter(_.y == White.backrankY)
-    lazy val bur = board.unmovedRooks.filter(_.y == Black.backrankY)
+    lazy val wur = board.unmovedRooks.pos.filter(_.y == White.backrankY)
+    lazy val bur = board.unmovedRooks.pos.filter(_.y == Black.backrankY)
 
     {
       // castling rights with inner rooks are represented by their file name

@@ -327,6 +327,13 @@ class ForsythTest extends ChessTest {
           }
         }
       }
+      "promoted on H2" in {
+        f << "r2q1b1r/p2k1Ppp/2p2p2/4p3/P2nP2n/3P1PRP/1PPB1K1q~/RN1Q1B2/Npb w - - 40 21" must beSome.like {
+          case s => s.board.crazyData must beSome.like {
+            case Data(_, promoted) => promoted must_== Set(H2)
+          }
+        }
+      }
     }
   }
   "three-check" should {
@@ -374,14 +381,14 @@ class ForsythTest extends ChessTest {
       val canonical = "rn2k1r1/ppp1pp1p/3p2p1/5bn1/P7/2N2B2/1PPPPP2/2BNK1RR w Gkq - 4 11"
       f <<< canonical must beSome.like {
         case s =>
-          s.situation.board.unmovedRooks must_== Set(A8, G8, G1)
+          s.situation.board.unmovedRooks must_== UnmovedRooks(Set(A8, G8, G1))
           f >> s must_== canonical
       }
     }
     "shredder fen of chess960 pos 284" in {
       f <<< "rkbqrbnn/pppppppp/8/8/8/8/PPPPPPPP/RKBQRBNN w EAea - 0 1" must beSome.like {
         case s =>
-          s.situation.board.unmovedRooks must_== Set(E1, E8, A1, A8)
+          s.situation.board.unmovedRooks must_== UnmovedRooks(Set(E1, E8, A1, A8))
           f >> s must_== "rkbqrbnn/pppppppp/8/8/8/8/PPPPPPPP/RKBQRBNN w KQkq - 0 1"
       }
     }
@@ -389,7 +396,7 @@ class ForsythTest extends ChessTest {
       val canonical = "rn2k1r1/ppp1pp1p/3p2p1/5bn1/P7/2N2B2/1PPPPP2/2BNK1RR w Gkq - 4 11"
       f <<< canonical must beSome.like {
         case s =>
-          s.situation.board.unmovedRooks must_== Set(A8, G8, G1)
+          s.situation.board.unmovedRooks must_== UnmovedRooks(Set(A8, G8, G1))
           f >> s must_== canonical
       }
     }

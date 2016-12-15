@@ -4,12 +4,14 @@ import scala.concurrent.duration._
 
 // All durations are expressed in seconds
 sealed trait Clock {
-  val limit: Int
-  val increment: Int
+  val config: Clock.Config
   val color: Color
   val whiteTime: Float
   val blackTime: Float
   val timerOption: Option[Double]
+
+  def limit = config.limit
+  def increment = config.increment
 
   def time(c: Color) = c.fold(whiteTime, blackTime)
 
@@ -29,14 +31,14 @@ sealed trait Clock {
 
   def elapsedTime(c: Color) = time(c)
 
-  def limitInMinutes = limit / 60d
+  def limitInMinutes = config.limitInMinutes
 
-  def estimateTotalIncrement = 40 * increment
+  def estimateTotalIncrement = config.estimateTotalIncrement
 
-  def estimateTotalTime = limit + estimateTotalIncrement
+  def estimateTotalTime = config.estimateTotalTime
 
   // Emergency time cutoff, in seconds.
-  def emergTime: Int = math.round(math.min(60, math.max(10, limit / 8)))
+  def emergTime = config.emergTime
 
   def stop: PausedClock
 
@@ -44,11 +46,9 @@ sealed trait Clock {
 
   def giveTime(c: Color, t: Float): Clock
 
-  def berserkable = increment == 0 || limit > 0
-
   def berserk(c: Color): Clock
 
-  def show = s"${Clock.showLimit(limit)}+$increment"
+  def show = config.show
 
   def showTime(t: Float) = {
     val hours = math.floor(t / 3600).toInt
@@ -67,16 +67,13 @@ sealed trait Clock {
 
   def takeback: Clock
 
-  def reset = Clock(
-    limit = limit,
-    increment = increment)
+  def reset = Clock(config)
 
   protected def now = System.currentTimeMillis / 1000d
 }
 
 case class RunningClock(
-    limit: Int,
-    increment: Int,
+    config: Clock.Config,
     color: Color,
     whiteTime: Float,
     blackTime: Float,
@@ -107,8 +104,7 @@ case class RunningClock(
   }
 
   def stop = PausedClock(
-    limit = limit,
-    increment = increment,
+    config = config,
     color = color,
     whiteTime = whiteTime + (if (color == White) (now - timer).toFloat else 0),
     blackTime = blackTime + (if (color == Black) (now - timer).toFloat else 0),
@@ -138,8 +134,7 @@ case class RunningClock(
 }
 
 case class PausedClock(
-    limit: Int,
-    increment: Int,
+    config: Clock.Config,
     color: Color,
     whiteTime: Float,
     blackTime: Float,
@@ -166,17 +161,39 @@ case class PausedClock(
   def takeback: PausedClock = switch
 
   def start = RunningClock(
+    config = config,
     color = color,
     whiteTime = whiteTime,
     blackTime = blackTime,
     whiteBerserk = whiteBerserk,
     blackBerserk = blackBerserk,
-    increment = increment,
-    limit = limit,
     timer = now)
 }
 
 object Clock {
+
+  // All durations are expressed in seconds
+  case class Config(limit: Int, increment: Int) {
+
+    def show = s"${Clock.showLimit(limit)}+$increment"
+
+    def limitInMinutes = limit / 60d
+
+    def estimateTotalIncrement = 40 * increment
+
+    def estimateTotalTime = limit + estimateTotalIncrement
+
+    // Emergency time cutoff, in seconds.
+    def emergTime = math.min(60, math.max(10, limit / 8))
+
+    def hasIncrement = increment > 0
+
+    def berserkable = increment == 0 || limit > 0
+
+    def toClock = Clock(this)
+
+    override def toString = show
+  }
 
   val minInitLimit = 3
   // no more than this time will be offered to the lagging player
@@ -184,20 +201,19 @@ object Clock {
   // no more than this time to get the last move in
   val maxGraceMillis = 1000
 
-  def apply(
-    limit: Int,
-    increment: Int): PausedClock = {
+  def apply(limit: Int, increment: Int): PausedClock = apply(Config(limit, increment))
+
+  def apply(config: Config): PausedClock = {
     val clock = PausedClock(
-      limit = limit,
-      increment = increment,
+      config = config,
       color = White,
       whiteTime = 0f,
       blackTime = 0f,
       whiteBerserk = false,
       blackBerserk = false)
     if (clock.limit == 0) clock
-      .giveTime(White, increment.max(minInitLimit))
-      .giveTime(Black, increment.max(minInitLimit))
+      .giveTime(White, config.increment.max(minInitLimit))
+      .giveTime(Black, config.increment.max(minInitLimit))
     else clock
   }
 

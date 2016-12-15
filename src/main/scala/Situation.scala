@@ -21,6 +21,8 @@ case class Situation(board: Board, color: Color) {
 
   lazy val check: Boolean = board check color
 
+  def checkSquare = if (check) kingPos else None
+
   def history = board.history
 
   def checkMate: Boolean = board.variant checkmate this
@@ -49,6 +51,9 @@ case class Situation(board: Board, color: Color) {
 
   def move(from: Pos, to: Pos, promotion: Option[PromotableRole]): Valid[Move] =
     board.variant.move(this, from, to, promotion)
+
+  def move(uci: Uci.Move): Valid[Move] =
+    board.variant.move(this, uci.orig, uci.dest, uci.promotion)
 
   def drop(role: Role, pos: Pos): Valid[Drop] =
     board.variant.drop(this, role, pos)
