@@ -11,8 +11,6 @@ case class Board(
     crazyData: Option[Crazyhouse.Data] = None
 ) {
 
-  import implicitFailures._
-
   def apply(at: Pos): Option[Piece] = pieces get at
 
   def apply(x: Int, y: Int): Option[Piece] = posAt(x, y) flatMap pieces.get

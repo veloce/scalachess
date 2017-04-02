@@ -1,7 +1,5 @@
 package object chess {
 
-
-
   sealed trait NonEmptyList[+A] {
     def head: A
   }
@@ -22,13 +20,11 @@ package object chess {
   case class Failure[+E](e: E) extends Validation[E, Nothing]
   case class Success[+A](e: A) extends Validation[Nothing, A]
 
-
   type Failures = NonEmptyList[String]
   type Valid[+A] = Validation[Failures, A]
 
   def success[A](e: A): Valid[A] = Success(e)
   def failure(s: String): Valid[Nothing] = Failure(NonEmptySingle(s))
-
 
   val White = Color.White
   val Black = Color.Black

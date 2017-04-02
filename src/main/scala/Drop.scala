@@ -21,7 +21,8 @@ case class Drop(
       after updateHistory { h =>
         h.copy(
           lastMove = Some(Uci.Drop(piece.role, pos)),
-          unmovedRooks = before.unmovedRooks)
+          unmovedRooks = before.unmovedRooks
+        )
       }, toUci, None
     )
 

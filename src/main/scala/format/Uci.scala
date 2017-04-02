@@ -94,8 +94,9 @@ object Uci {
 
   def readList(moves: String): Option[List[Uci]] =
     moves.split(' ').toList.map(apply)
-      .foldLeft(Option(List.empty[Uci])) { case (lo, eo) =>
-        lo.flatMap(l => eo.map(_ :: l))
+      .foldLeft(Option(List.empty[Uci])) {
+        case (lo, eo) =>
+          lo.flatMap(l => eo.map(_ :: l))
       }.map(_.reverse)
 
   def writeList(moves: List[Uci]): String =
@@ -103,8 +104,9 @@ object Uci {
 
   def readListPiotr(moves: String): Option[List[Uci]] =
     moves.split(' ').toList.map(piotr)
-      .foldLeft(Option(List.empty[Uci])) { case (lo, eo) =>
-        lo.flatMap(l => eo.map(_ :: l))
+      .foldLeft(Option(List.empty[Uci])) {
+        case (lo, eo) =>
+          lo.flatMap(l => eo.map(_ :: l))
       }.map(_.reverse)
 
   def writeListPiotr(moves: List[Uci]): String =

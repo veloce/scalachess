@@ -24,7 +24,8 @@ object Replay {
   def apply(
     moveStrs: List[String],
     initialFen: Option[String],
-    variant: chess.variant.Variant): Valid[Replay] =
+    variant: chess.variant.Variant
+  ): Valid[Replay] =
     (Some(moveStrs).filter(_.nonEmpty) match {
       case Some(nonEmptyMoves) => success(nonEmptyMoves)
       case None => failure("[replay] pgn is empty")
@@ -34,7 +35,8 @@ object Replay {
         List(
         initialFen map { fen => Tag(_.FEN, fen) },
         Some(variant).filterNot(_.standard) map { v => Tag(_.Variant, v.name) }
-      ).flatten)
+      ).flatten
+      )
     }
 
   private def recursiveGames(game: Game, sans: List[San]): Valid[List[Game]] =

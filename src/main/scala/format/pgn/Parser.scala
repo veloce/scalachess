@@ -70,8 +70,9 @@ object Parser {
           } mergeGlyphs glyphs
         }
       ): Valid[San]
-    }.foldLeft(Success(Nil): Valid[List[San]]) { case (lo, eo) =>
-      lo.flatMap(l => eo.map(_ :: l))
+    }.foldLeft(Success(Nil): Valid[List[San]]) {
+      case (lo, eo) =>
+        lo.flatMap(l => eo.map(_ :: l))
     }.map(_.reverse)
 
   trait Logging { self: Parsers =>
