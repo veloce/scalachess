@@ -10,6 +10,7 @@ libraryDependencies ++= List(
   "org.specs2" %% "specs2-core" % "3.6" % "test",
   "joda-time" % "joda-time" % "2.9.7",
   "org.joda" % "joda-convert" % "1.8",
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.2",
   "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
 )
 
