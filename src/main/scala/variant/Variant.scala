@@ -1,6 +1,8 @@
 package chess
 package variant
 
+import scala.collection.breakOut
+
 import Pos.posAt
 
 abstract class Variant(
@@ -9,7 +11,10 @@ abstract class Variant(
     val name: String,
     val shortName: String,
     val title: String,
-    val standardInitialPosition: Boolean) {
+    val standardInitialPosition: Boolean
+) {
+
+  def pieces: Map[Pos, Piece]
 
   def standard = this == Standard
   def chess960 = this == Chess960
@@ -26,23 +31,21 @@ abstract class Variant(
 
   def allowsCastling = !castles.isEmpty
 
-  protected def backRank = IndexedSeq(Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook)
-
-  def pieces: Map[Pos, Piece] = Variant.symmetricRank(backRank)
+  protected val backRank = Vector(Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook)
 
   def castles: Castles = Castles.all
 
   def initialFen = format.Forsyth.initial
 
   def isValidPromotion(promotion: Option[PromotableRole]) = promotion match {
-    case None                                 => true
+    case None => true
     case Some(Queen | Rook | Knight | Bishop) => true
-    case _                                    => false
+    case _ => false
   }
 
-  def validMoves(situation: Situation): Map[Pos, List[Move]] = situation.actors collect {
+  def validMoves(situation: Situation): Map[Pos, List[Move]] = situation.actors.collect {
     case actor if actor.moves.nonEmpty => actor.pos -> actor.moves
-  } toMap
+  }(breakOut)
 
   // Optimised for performance
   def kingThreatened(board: Board, color: Color, to: Pos, filter: Piece => Boolean = _ => true): Boolean = {
@@ -59,9 +62,11 @@ abstract class Variant(
     kingPos exists { kingThreatened(m.after, !m.color, _, filter) }
   }
 
-  def kingSafety(a: Actor, m: Move): Boolean = kingSafety(m,
+  def kingSafety(a: Actor, m: Move): Boolean = kingSafety(
+    m,
     if (a.piece is King) (_ => true) else if (a.check) (_.role.attacker) else (_.role.projection),
-    if (a.piece.role == King) None else a.board kingPosOf a.color)
+    if (a.piece.role == King) None else a.board kingPosOf a.color
+  )
 
   def longRangeThreatens(board: Board, p: Pos, dir: Direction, to: Pos): Boolean = dir(p) exists { next =>
     next == to || (!board.pieces.contains(next) && longRangeThreatens(board, next, dir, to))
@@ -157,22 +162,16 @@ abstract class Variant(
 
   def valid(board: Board, strict: Boolean) = Color.all forall validSide(board, strict)_
 
-  def roles = List(Rook, Knight, King, Bishop, King, Queen, Pawn)
+  val roles = List(Rook, Knight, King, Bishop, King, Queen, Pawn)
 
-  def promotableRoles: List[PromotableRole] = List(Queen, Rook, Bishop, Knight)
+  val promotableRoles: List[PromotableRole] = List(Queen, Rook, Bishop, Knight)
 
-  def rolesByForsyth: Map[Char, Role] = this.roles map { r => (r.forsyth, r) } toMap
+  lazy val rolesByPgn: Map[Char, Role] = roles.map { r => (r.pgn, r) }(breakOut)
 
-  def rolesByPgn: Map[Char, Role] = this.roles map { r => (r.pgn, r) } toMap
+  lazy val rolesPromotableByPgn: Map[Char, PromotableRole] =
+    promotableRoles.map { r => (r.pgn, r) }(breakOut)
 
-  def rolesPromotableByPgn: Map[Char, PromotableRole] =
-    promotableRoles map { r => (r.pgn, r) } toMap
-
-  def isUnmovedPawn(color: Color, pos: Pos) = {
-    color == White && pos.y == 2
-  } || {
-    color == Black && pos.y == 7
-  }
+  def isUnmovedPawn(color: Color, pos: Pos) = pos.y == color.fold(2, 7)
 
   override def toString = s"Variant($name)"
 }
@@ -199,7 +198,8 @@ object Variant {
     chess.variant.Standard,
     chess.variant.Crazyhouse,
     chess.variant.ThreeCheck,
-    chess.variant.KingOfTheHill)
+    chess.variant.KingOfTheHill
+  )
 
   val divisionSensibleVariants: Set[Variant] = Set(
     chess.variant.Standard,
@@ -207,7 +207,8 @@ object Variant {
     chess.variant.ThreeCheck,
     chess.variant.KingOfTheHill,
     chess.variant.Antichess,
-    chess.variant.FromPosition)
+    chess.variant.FromPosition
+  )
 
   private[variant] def symmetricRank(rank: IndexedSeq[Role]): Map[Pos, Piece] =
     (for (y ← Seq(1, 2, 7, 8); x ← 1 to 8) yield {

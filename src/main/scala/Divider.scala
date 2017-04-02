@@ -30,7 +30,7 @@ object Divider {
       case (found: Some[_], _) => found
       case (_, (board, index)) =>
         if (majorsAndMinors(board) <= 10 ||
-          backRankSparse(board) ||
+          backrankSparse(board) ||
           mixedness(board) > 150) Some(index) else None
     }
 
@@ -53,20 +53,12 @@ object Divider {
       if (p.role == Pawn || p.role == King) v else v + 1
     }
 
-  private val whiteBackRank: List[Pos] = (1 to 8).toList flatMap { Pos.posAt(_, 1) }
-  private val blackBackRank: List[Pos] = (1 to 8).toList flatMap { Pos.posAt(_, 8) }
+  private val backranks = List(Pos.whiteBackrank -> Color.White, Pos.blackBackrank -> Color.Black)
 
-  private def backRankSparse(board: Board): Boolean =
-    // Sparse back-rank indicates that pieces have been developed
-    {
-      whiteBackRank.foldLeft(0) { (v, p) =>
-        board(p).fold(v) { a => if (a is Color.white) v + 1 else v }
-      } < 3
-    } || {
-      blackBackRank.foldLeft(0) { (v, p) =>
-        board(p).fold(v) { a => if (a is Color.black) v + 1 else v }
-      } < 3
-    }
+  // Sparse back-rank indicates that pieces have been developed
+  private def backrankSparse(board: Board): Boolean = backranks.exists {
+    case (backrank, color) => backrank.count { pos => board(pos).fold(false)(_ is color) } < 4
+  }
 
   private def score(white: Int, black: Int, x: Int, y: Int): Int = (white, black) match {
     case (0, 0) => 0
@@ -90,7 +82,7 @@ object Divider {
 
     case (0, 4) => if (y < 7) 3 + (7 - y) else 0
 
-    case _      => 0
+    case _ => 0
   }
 
   private val mixednessRegions: List[List[Pos]] = {
@@ -120,6 +112,4 @@ object Divider {
         mix + score(white, black, region.head.x, region.head.y)
     }
   }
-
-  private def indexOption(index: Int) = if (index == -1) None else Some(index)
 }

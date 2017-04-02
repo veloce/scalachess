@@ -9,12 +9,13 @@ case object Horde extends Variant(
   name = "Horde",
   shortName = "horde",
   title = "Destroy the horde to win!",
-  standardInitialPosition = false) {
+  standardInitialPosition = false
+) {
 
   /**
    * In Horde chess white advances against black with a horde of pawns.
    */
-  override lazy val pieces: Map[Pos, Piece] = {
+  lazy val pieces: Map[Pos, Piece] = {
 
     val frontPawns = List(Pos.B5, Pos.C5, Pos.F5, Pos.G5).map { _ -> White.pawn }
 
@@ -47,18 +48,22 @@ case object Horde extends Variant(
     situation.board.piecesOf(White).isEmpty
 
   /**
+   * In horde chess, black always has a possibility to win the game.
+   *  Auto-drawing the game should never happen, but it did in https://en.lichess.org/xQ2RsU8N#121
+   */
+  override def insufficientWinningMaterial(board: Board) = false
+
+  /**
    * In horde chess, white cannot win on * V K or [BN]{2} v K or just one piece since they don't have a king
    * for support.
    */
   override def insufficientWinningMaterial(board: Board, color: Color) = {
     color == Color.white && board.piecesOf(Color.white).size == 1 ||
       board.piecesOf(Color.white).size == 2 &&
-        board.piecesOf(Color.white).forall(_._2.isMinor)
+      board.piecesOf(Color.white).forall(_._2.isMinor)
   }
 
-  override def isUnmovedPawn(color: Color, pos: Pos) = {
-    color == White && (pos.y == 1 || pos.y == 2)
-  } || {
-    color == Black && pos.y == 7
-  }
+  override def isUnmovedPawn(color: Color, pos: Pos) =
+    if (color.white) pos.y == 1 || pos.y == 2
+    else pos.y == 7
 }

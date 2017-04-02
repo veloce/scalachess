@@ -1,8 +1,6 @@
 package chess
 package format
 
-import Pos._
-
 class UciDumpPerfTest extends ChessTest {
 
   val nb = 5
@@ -29,7 +27,7 @@ class UciDumpPerfTest extends ChessTest {
         println(s"$nb games in $duration ms")
         duration
       }
-      val nbGames = iterations * nb 
+      val nbGames = iterations * nb
       val gameMillis = durations.sum / nbGames
       println(s"Average = $gameMillis ms per game")
       println(s"          ${1000 / gameMillis} games per second")

@@ -2,6 +2,7 @@ package chess
 package format.pgn
 
 import scala.util.Try
+import scala.collection.breakOut
 
 object Binary {
 
@@ -20,13 +21,13 @@ object Binary {
 
   private object Encoding {
     val pieceInts: Map[String, Int] = Map("K" -> 1, "Q" -> 2, "R" -> 3, "N" -> 4, "B" -> 5, "O-O" -> 6, "O-O-O" -> 7)
-    val pieceStrs: Map[Int, String] = (pieceInts map { case (k, v) => v -> k }).toMap
+    val pieceStrs: Map[Int, String] = (pieceInts map { case (k, v) => v -> k })(breakOut)
     val dropPieceInts: Map[String, Int] = Map("P" -> 1, "Q" -> 2, "R" -> 3, "N" -> 4, "B" -> 5)
-    val dropPieceStrs: Map[Int, String] = (dropPieceInts map { case (k, v) => v -> k }).toMap
+    val dropPieceStrs: Map[Int, String] = (dropPieceInts map { case (k, v) => v -> k })(breakOut)
     val promotionInts: Map[String, Int] = Map("" -> 0, "Q" -> 1, "R" -> 2, "N" -> 3, "B" -> 4, "K" -> 6)
-    val promotionStrs: Map[Int, String] = (promotionInts map { case (k, v) => v -> k }).toMap
+    val promotionStrs: Map[Int, String] = (promotionInts map { case (k, v) => v -> k })(breakOut)
     val checkInts: Map[String, Int] = Map("" -> 0, "+" -> 1, "#" -> 2)
-    val checkStrs: Map[Int, String] = (checkInts map { case (k, v) => v -> k }).toMap
+    val checkStrs: Map[Int, String] = (checkInts map { case (k, v) => v -> k })(breakOut)
   }
 
   private object Reader {
@@ -40,7 +41,7 @@ object Binary {
 
     def intMoves(bs: List[Int], pliesToGo: Int): List[String] = bs match {
       case _ if pliesToGo <= 0 => Nil
-      case Nil                 => Nil
+      case Nil => Nil
       case b1 :: rest if moveType(b1) == MoveType.SimplePawn =>
         simplePawn(b1) :: intMoves(rest, pliesToGo - 1)
       case b1 :: b2 :: rest if moveType(b1) == MoveType.SimplePiece =>
@@ -65,7 +66,7 @@ object Binary {
     def simplePiece(b1: Int, b2: Int): String =
       if (bitAt(b2, 2)) drop(b1, b2)
       else pieceStrs(b2 >> 5) match {
-        case castle@("O-O" | "O-O-O") => {
+        case castle @ ("O-O" | "O-O-O") => {
           val check = checkStrs(cut(b2, 5, 3))
           s"$castle$check"
         }
@@ -117,7 +118,6 @@ object Binary {
     private def right(i: Int, x: Int): Int = i & lengthMasks(x)
     private def cut(i: Int, from: Int, to: Int): Int = right(i, from) >> to
     private def bitAt(i: Int, p: Int): Boolean = cut(i, p, p - 1) != 0
-    private val bitMasks = Map(0 -> 0x80, 1 -> 0x40, 2 -> 0x20, 3 -> 0x10, 4 -> 0x08, 5 -> 0x04, 6 -> 0x02, 7 -> 0x01)
     private val lengthMasks = Map(1 -> 0x01, 2 -> 0x03, 3 -> 0x07, 4 -> 0x0F, 5 -> 0x1F, 6 -> 0x3F, 7 -> 0x7F, 8 -> 0xFF)
     private def !!(msg: String) = throw new Exception("Binary reader failed: " + msg)
   }
@@ -127,7 +127,7 @@ object Binary {
     import Encoding._
 
     def move(str: String): List[Byte] = (str match {
-      case pos if pos.size == 2  => simplePawn(pos)
+      case pos if pos.size == 2 => simplePawn(pos)
       case CastlingR(str, check) => castling(str, check)
       case SimplePieceR(piece, capture, pos, check) =>
         simplePiece(piece, pos, capture, check)

@@ -1,13 +1,18 @@
 package chess
 package variant
 
+import scala.collection.breakOut
+
 case object Antichess extends Variant(
   id = 6,
   key = "antichess",
   name = "Antichess",
   shortName = "Anti",
   title = "Lose all your pieces (or reach a stalemate) to win the game.",
-  standardInitialPosition = true) {
+  standardInitialPosition = true
+) {
+
+  def pieces = Standard.pieces
 
   // In antichess, it is not permitted to castle
   override val castles = Castles.none
@@ -42,7 +47,7 @@ case object Antichess extends Variant(
   // No player can win if the only remaining pieces are opposing bishops on different coloured
   // diagonals. There may be pawns that are incapable of moving and do not attack the right color
   // of square to allow the player to force their opponent to capture their bishop, also resulting in a draw
-  override def insufficientWinningMaterial (board: Board) = {
+  override def insufficientWinningMaterial(board: Board) = {
     val actors = board.actors
 
     // Exit early if we are not in a situation with only bishops and pawns
@@ -59,8 +64,8 @@ case object Antichess extends Variant(
         // We consider the case where a player has two bishops on the same diagonal after promoting by using .distinct.
         // If after applying .distinct the size of the list is greater than one, then the player has bishops on both
         // colours
-        if (whiteBishops.map(_.pos.color).toList.distinct.size != 1 ||
-          blackBishops.map(_.pos.color).toList.distinct.size != 1) false
+        if (whiteBishops.map(_.pos.color)(breakOut).distinct.size != 1 ||
+          blackBishops.map(_.pos.color)(breakOut).distinct.size != 1) false
         else {
           for {
             whiteSquareColor <- whiteBishops.headOption map (_.pos.color)
@@ -89,7 +94,7 @@ case object Antichess extends Variant(
     case _ => false
   }
 
-  override def roles = List(Rook, Knight, King, Bishop, Queen, Pawn)
+  override val roles = List(Rook, Knight, King, Bishop, Queen, Pawn)
 
-  override def promotableRoles: List[PromotableRole] = List(Queen, Rook, Bishop, Knight, King)
+  override val promotableRoles: List[PromotableRole] = List(Queen, Rook, Bishop, Knight, King)
 }

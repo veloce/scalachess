@@ -7,7 +7,8 @@ import scala._
 case class Pgn(
     tags: List[Tag],
     turns: List[Turn],
-    initial: Initial = Initial.empty) {
+    initial: Initial = Initial.empty
+) {
 
   def updateTurn(fullMove: Int, f: Turn => Turn) = {
     val index = fullMove - 1
@@ -32,15 +33,17 @@ case class Pgn(
     tags = Tag(_.Event, title) :: tags.filterNot(_.name == Tag.Event)
   )
 
-  override def toString = {
+  def render: String = {
     val tagStr = tags mkString "\n"
-    val initStr = 
-      if (initial.comments.nonEmpty) initial.comments.mkString("{ ", " } { ", " }\n") 
+    val initStr =
+      if (initial.comments.nonEmpty) initial.comments.mkString("{ ", " } { ", " }\n")
       else ""
     val turnStr = turns mkString " "
     val endStr = tags find (_.name == Tag.Result) map (_.value) getOrElse ""
     s"$tagStr\n\n$initStr$turnStr $endStr"
   }.trim
+
+  override def toString = render
 }
 
 case class Initial(comments: List[String] = Nil)
@@ -52,7 +55,8 @@ object Initial {
 case class Turn(
     number: Int,
     white: Option[Move],
-    black: Option[Move]) {
+    black: Option[Move]
+) {
 
   def update(color: Color, f: Move => Move) = color.fold(
     copy(white = white map f),
@@ -73,10 +77,10 @@ case class Turn(
   override def toString = {
     val text = (white, black) match {
       case (Some(w), Some(b)) if w.isLong => s" $w $number... $b"
-      case (Some(w), Some(b))             => s" $w $b"
-      case (Some(w), None)                => s" $w"
-      case (None, Some(b))                => s".. $b"
-      case _                              => ""
+      case (Some(w), Some(b)) => s" $w $b"
+      case (Some(w), None) => s" $w"
+      case (None, Some(b)) => s".. $b"
+      case _ => ""
     }
     s"$number.$text"
   }
@@ -104,23 +108,22 @@ case class Move(
     result: Option[String] = None,
     variations: List[List[Turn]] = Nil,
     // time left for the user who made the move, after he made it
-    timeLeft: Option[Int] = None) {
+    secondsLeft: Option[Int] = None
+) {
 
   def isLong = comments.nonEmpty || variations.nonEmpty
 
-  def timeString(time: Int) = Clock.timeString(time)
-
   private def clockString: Option[String] =
-    timeLeft.map(time => "[%clk " + timeString(time) + "]")
+    secondsLeft.map(seconds => "[%clk " + Clock.formatSeconds(seconds) + "]")
 
   override def toString = {
     val glyphStr = glyphs.toList.map({
       case glyph if glyph.id <= 6 => glyph.symbol
-      case glyph                  => s" $$${glyph.id}"
+      case glyph => s" $$${glyph.id}"
     }).mkString
     val commentsOrTime =
-      if (comments.nonEmpty || timeLeft.isDefined || opening.isDefined || result.isDefined)
-        List(clockString, opening, result).flatten.:::(comments).map { text =>
+      if (comments.nonEmpty || secondsLeft.isDefined || opening.isDefined || result.isDefined)
+        List(clockString, opening, result).flatten.:::(comments map Move.noDoubleLineBreak).map { text =>
           s" { $text }"
         }.mkString
       else ""
@@ -129,4 +132,12 @@ case class Move(
       else variations.map(_.mkString(" (", " ", ")")).mkString(" ")
     s"$san$glyphStr$commentsOrTime$variationString"
   }
+}
+
+object Move {
+
+  private val noDoubleLineBreakRegex = "(\r?\n){2,}".r
+
+  private def noDoubleLineBreak(txt: String) =
+    noDoubleLineBreakRegex.replaceAllIn(txt, "\n")
 }

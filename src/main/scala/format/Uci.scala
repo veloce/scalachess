@@ -16,7 +16,8 @@ object Uci {
   case class Move(
       orig: Pos,
       dest: Pos,
-      promotion: Option[PromotableRole] = None) extends Uci {
+      promotion: Option[PromotableRole] = None
+  ) extends Uci {
 
     def keys = orig.key + dest.key
     def uci = keys + promotionString
@@ -106,6 +107,6 @@ object Uci {
         lo.flatMap(l => eo.map(_ :: l))
       }.map(_.reverse)
 
-  def writeListPiotr(moves: List[Uci.Move]): String =
+  def writeListPiotr(moves: List[Uci]): String =
     moves.map(_.piotr) mkString " "
 }

@@ -1,8 +1,6 @@
 package chess
 package format.pgn
 
-import Pos._
-
 class RenderTest extends ChessTest {
 
   private def glyphs(id: Int) = Glyph.find(id).fold(Glyphs.empty) { g =>
@@ -88,29 +86,29 @@ opening theory } 10. Bxc6 (10. O-O Bxc3 11. Bxc6 Bxb2 12. Bxb7 Bxa1 13.
         turns = List(
           Turn(
             number = 1,
-            white = Move("a4", timeLeft = 298.some).some,
-            black = Move("Nf6", timeLeft = 299.some).some
+            white = Move("a4", secondsLeft = 298.some).some,
+            black = Move("Nf6", secondsLeft = 299.some).some
           ),
           Turn(
             number = 2,
-            white = Move("d4", timeLeft = 295.some).some,
-            black = Move("d5", timeLeft = 298.some).some
+            white = Move("d4", secondsLeft = 295.some).some,
+            black = Move("d5", secondsLeft = 298.some).some
           ),
           Turn(
             number = 3,
-            white = Move("h4", timeLeft = 292.some).some,
-            black = Move("e6", timeLeft = 297.some).some
+            white = Move("h4", secondsLeft = 292.some).some,
+            black = Move("e6", secondsLeft = 297.some).some
           ),
           Turn(
             number = 4,
-            white = Move("Qd3", glyphs = glyphs(1), timeLeft = 288.some,
+            white = Move("Qd3", glyphs = glyphs(1), secondsLeft = 288.some,
               comments = "An invention of true genius." :: Nil).some,
-            black = Move("c5", timeLeft = 296.some).some
+            black = Move("c5", secondsLeft = 296.some).some
           ),
           Turn(
             number = 5,
-            white = Move("dxc5", timeLeft = 258.some).some,
-            black = Move("Bxc5", glyphs = glyphs(1), timeLeft = 295.some).some
+            white = Move("dxc5", secondsLeft = 258.some).some,
+            black = Move("Bxc5", glyphs = glyphs(1), secondsLeft = 295.some).some
           )
         )
       )
@@ -137,7 +135,8 @@ opening theory } 10. Bxc6 (10. O-O Bxc3 11. Bxc6 Bxb2 12. Bxb7 Bxa1 13.
             black = Move("Nb4", glyphs = Glyphs(
               Glyph.MoveAssessment.blunder.some,
               Glyph.PositionAssessment.whiteMuchBetter.some,
-              List(Glyph.Observation.timeTrouble))).some
+              List(Glyph.Observation.timeTrouble)
+            )).some
           ),
           Turn(
             number = 3,
@@ -184,14 +183,16 @@ opening theory } 10. Bxc6 (10. O-O Bxc3 11. Bxc6 Bxb2 12. Bxb7 Bxa1 13.
     "empty" in {
       val pgn = Pgn(
         tags = List(),
-        turns = List())
+        turns = List()
+      )
       pgn.toString must_== """"""
     }
     "empty with initial comment" in {
       val pgn = Pgn(
         tags = List(),
         turns = List(),
-        initial = Initial(List("Why hello there!")))
+        initial = Initial(List("Why hello there!"))
+      )
       pgn.toString must_== """{ Why hello there! }"""
     }
     "empty with initial comments" in {
@@ -201,7 +202,8 @@ opening theory } 10. Bxc6 (10. O-O Bxc3 11. Bxc6 Bxb2 12. Bxb7 Bxa1 13.
         initial = Initial(List(
           "Why hello there!",
           "The Exchange Slav, the sure way to play with zero losing chances so an ideal choice for game one"
-        )))
+        ))
+      )
       pgn.toString must_== """{ Why hello there! } { The Exchange Slav, the sure way to play with zero losing chances so an ideal choice for game one }"""
     }
     "moves with initial comments" in {
@@ -233,7 +235,8 @@ opening theory } 10. Bxc6 (10. O-O Bxc3 11. Bxc6 Bxb2 12. Bxb7 Bxa1 13.
         initial = Initial(List(
           "Why hello there!",
           "The Exchange Slav, the sure way to play with zero losing chances so an ideal choice for game one"
-        )))
+        ))
+      )
       pgn.toString must_== """{ Why hello there! } { The Exchange Slav, the sure way to play with zero losing chances so an ideal choice for game one }
 1. d4 (1. e4) 1... Nf6 (1... d5)"""
     }

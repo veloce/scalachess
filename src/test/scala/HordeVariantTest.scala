@@ -11,8 +11,8 @@ class HordeVariantTest extends ChessTest {
       val game = fenToGame(position, Horde)
 
       game must beSuccess.like {
-        case gm =>
-          gm.situation.board.variant.insufficientWinningMaterial(gm.situation.board, Color.white) must beTrue
+        case game =>
+          game.situation.board.variant.insufficientWinningMaterial(game.situation.board, Color.white) must beTrue
       }
     }
 
@@ -21,8 +21,8 @@ class HordeVariantTest extends ChessTest {
       val game = fenToGame(position, Horde)
 
       game must beSuccess.like {
-        case gm =>
-          gm.situation.board.variant.insufficientWinningMaterial(gm.situation.board, Color.white) must beTrue
+        case game =>
+          game.situation.board.variant.insufficientWinningMaterial(game.situation.board, Color.white) must beTrue
       }
 
     }
@@ -32,8 +32,8 @@ class HordeVariantTest extends ChessTest {
       val game = fenToGame(position, Horde)
 
       game must beSuccess.like {
-        case gm =>
-          gm.situation.board.variant.insufficientWinningMaterial(gm.situation.board, Color.white) must beTrue
+        case game =>
+          game.situation.board.variant.insufficientWinningMaterial(game.situation.board, Color.white) must beTrue
       }
     }
 
@@ -42,8 +42,18 @@ class HordeVariantTest extends ChessTest {
       val game = fenToGame(position, Horde)
 
       game must beSuccess.like {
-        case gm =>
-          gm.situation.board.variant.insufficientWinningMaterial(gm.situation.board, Color.white) must beFalse
+        case game =>
+          game.situation.board.variant.insufficientWinningMaterial(game.situation.board, Color.white) must beFalse
+      }
+    }
+
+    "Must not auto-draw in B vs K endgame, black can win" in {
+      val position = "7B/6k1/8/8/8/8/8/8 b - -"
+      val game = fenToGame(position, Horde)
+
+      game must beSuccess.like {
+        case game =>
+          game.situation.board.variant.insufficientWinningMaterial(game.situation.board) must beFalse
       }
     }
   }

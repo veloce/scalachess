@@ -1,8 +1,6 @@
 package chess
 package format.pgn
 
-import format.Forsyth
-
 object Reader {
 
   def full(pgn: String, tags: List[Tag] = Nil): Valid[Replay] =
@@ -14,7 +12,8 @@ object Reader {
   def fullWithSans(
     pgn: String,
     op: List[San] => List[San],
-    tags: List[Tag] = Nil): Valid[Replay] = for {
+    tags: List[Tag] = Nil
+  ): Valid[Replay] = for {
     parsed ← Parser.full(pgn)
     game = makeGame(parsed.tags ::: tags)
     replay ← makeReplay(game, op(parsed.sans))
@@ -26,7 +25,8 @@ object Reader {
   def movesWithSans(
     moveStrs: List[String],
     op: List[San] => List[San],
-    tags: List[Tag]): Valid[Replay] = for {
+    tags: List[Tag]
+  ): Valid[Replay] = for {
     moves ← Parser.moves(moveStrs, Parser.getVariantFromTags(tags))
     game = makeGame(tags)
     replay ← makeReplay(game, op(moves))

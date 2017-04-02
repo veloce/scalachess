@@ -12,7 +12,8 @@ class DumperTest extends ChessTest {
         case Forsyth.SituationPlus(sit, turns) => Game(
           board = sit.board,
           player = sit.color,
-          turns = turns)
+          turns = turns
+        )
       }
       val move = game(Pos.F2, Pos.F4).toOption.get._2
       Dumper(move) must_== "f4+"
@@ -41,7 +42,7 @@ class DumperTest extends ChessTest {
   "dump a promotion move" should {
     "without check" in {
       val game = Game("""
-   
+
 P    k
 
 
@@ -57,7 +58,7 @@ KNBQ BNR
     "with check" in {
       val game = Game("""
     k
-P     
+P
 
 
 
@@ -72,7 +73,7 @@ KNBQ BNR
     "with checkmate" in {
       val game = Game("""
     k
-P  ppp  
+P  ppp
 
 
 
@@ -236,16 +237,16 @@ pppppppp
 PPPPPPPP
 NRKNRQBB
 """, variant.Chess960)).playMoves(
-  F2 -> F4,
-  D8 -> C6,
-  D1 -> C3,
-  G7 -> G6,
-  C3 -> B5,
-  C8 -> B8,
-  C1 -> B1
-) map (_.pgnMoves) must beSuccess.like {
-        case ms => ms must_== "f4 Nc6 Nc3 g6 Nb5 O-O-O O-O-O".split(' ').toList
-      }
+        F2 -> F4,
+        D8 -> C6,
+        D1 -> C3,
+        G7 -> G6,
+        C3 -> B5,
+        C8 -> B8,
+        C1 -> B1
+      ) map (_.pgnMoves) must beSuccess.like {
+          case ms => ms must_== "f4 Nc6 Nc3 g6 Nb5 O-O-O O-O-O".split(' ').toList
+        }
     }
     "tricky rook disambiguation" in {
       val fen = """r5k1/1b5p/N3p1p1/Q4p2/4r3/2P1q3/1PK2RP1/5R2 w - - 1 38"""
@@ -253,6 +254,29 @@ NRKNRQBB
       val game1 = Game(sit.board, sit.color)
       val (game2, move) = game1(Pos.F2, Pos.F3).toOption.get
       Dumper(game1.situation, move, game2.situation) must_== "Rf3"
+    }
+  }
+  "move comment" should {
+    "simple" in {
+      Move("e4", List("Some comment")).toString must_== "e4 { Some comment }"
+    }
+    "one line break" in {
+      Move("e4", List("""Some
+comment""")).toString must_== """e4 { Some
+comment }"""
+    }
+    "two line breaks" in {
+      Move("e4", List("""Some
+
+comment""")).toString must_== """e4 { Some
+comment }"""
+    }
+    "three line breaks" in {
+      Move("e4", List("""Some
+
+
+comment""")).toString must_== """e4 { Some
+comment }"""
     }
   }
 }

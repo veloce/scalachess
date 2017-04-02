@@ -1,5 +1,6 @@
 package chess
 
+import scala.collection.breakOut
 import Pos.posAt
 import variant.{ Variant, Crazyhouse }
 
@@ -7,7 +8,8 @@ case class Board(
     pieces: PieceMap,
     history: History,
     variant: Variant,
-    crazyData: Option[Crazyhouse.Data] = None) {
+    crazyData: Option[Crazyhouse.Data] = None
+) {
 
   import implicitFailures._
 
@@ -20,20 +22,20 @@ case class Board(
   }
 
   lazy val actorsOf: Color.Map[List[Actor]] = Color Map { color =>
-    actors.values filter (_.color == color) toList
+    actors.values.filter(_.color == color) toList
   }
 
-  def rolesOf(c: Color): List[Role] = pieces.values.toList collect {
+  def rolesOf(c: Color): List[Role] = pieces.values.collect {
     case piece if piece.color == c => piece.role
-  }
+  }(breakOut)
 
   def actorAt(at: Pos): Option[Actor] = actors get at
 
   def piecesOf(c: Color): Map[Pos, Piece] = pieces filter (_._2 is c)
 
-  lazy val kingPos: Map[Color, Pos] = pieces collect {
+  lazy val kingPos: Map[Color, Pos] = pieces.collect {
     case (pos, Piece(color, King)) => color -> pos
-  } toMap
+  }(breakOut)
 
   def kingPosOf(c: Color): Option[Pos] = kingPos get c
 
@@ -92,7 +94,7 @@ case class Board(
   }
 
   lazy val occupation: Color.Map[Set[Pos]] = Color.Map { color =>
-    pieces collect { case (pos, piece) if piece is color => pos } toSet
+    pieces.collect { case (pos, piece) if piece is color => pos }(breakOut)
   }
 
   def hasPiece(p: Piece) = pieces.values exists (p ==)
@@ -145,8 +147,10 @@ case class Board(
         whiteKingSide = castles.whiteKingSide && wkReady && rookReady(White, wkPos, false),
         whiteQueenSide = castles.whiteQueenSide && wkReady && rookReady(White, wkPos, true),
         blackKingSide = castles.blackKingSide && bkReady && rookReady(Black, bkPos, false),
-        blackQueenSide = castles.blackQueenSide && bkReady && rookReady(Black, bkPos, true))
-    } else Castles.none
+        blackQueenSide = castles.blackQueenSide && bkReady && rookReady(Black, bkPos, true)
+      )
+    }
+    else Castles.none
   }
 
   def updateHistory(f: History => History) = copy(history = f(history))
@@ -175,8 +179,6 @@ case class Board(
 }
 
 object Board {
-
-  import Pos._
 
   def apply(pieces: Traversable[(Pos, Piece)], variant: Variant): Board =
     Board(pieces.toMap, if (variant.allowsCastling) Castles.all else Castles.none, variant)

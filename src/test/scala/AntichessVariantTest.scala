@@ -1,7 +1,7 @@
 package chess
 
 import scalaz.Validation.FlatMap._
-import variant.{ Antichess, Standard }
+import variant.Antichess
 import format.Forsyth
 
 class AntichessVariantTest extends ChessTest {
@@ -215,7 +215,7 @@ g4 {[%emt 0.200]} 34. Rxg4 {[%emt 0.172]} 0-1"""
       val position = "8/6p1/4B1P1/4p3/4P3/8/2p5/8 b - - 1 28"
       val originalGame = fenToGame(position, Antichess)
 
-      val newGame = originalGame flatMap(_.apply(Pos.C2, Pos.C1, Some(Bishop))) map (_._1)
+      val newGame = originalGame flatMap (_.apply(Pos.C2, Pos.C1, Some(Bishop))) map (_._1)
 
       newGame must beSuccess.like {
         case drawnGame =>
@@ -231,7 +231,7 @@ g4 {[%emt 0.200]} 34. Rxg4 {[%emt 0.172]} 0-1"""
       val position = "8/6p1/1B4P1/4p3/4P3/8/3p4/8 b - -"
       val originalGame = fenToGame(position, Antichess)
 
-      val newGame = originalGame flatMap(_.apply(Pos.D2, Pos.D1, Some(Bishop))) map (_._1)
+      val newGame = originalGame flatMap (_.apply(Pos.D2, Pos.D1, Some(Bishop))) map (_._1)
 
       newGame must beSuccess.like {
         case nonDrawnGame =>
@@ -245,7 +245,7 @@ g4 {[%emt 0.200]} 34. Rxg4 {[%emt 0.172]} 0-1"""
       val position = "5b2/1P4p1/4B1P1/4p3/4P3/8/8/8 w - -"
       val originalGame = fenToGame(position, Antichess)
 
-      val newGame = originalGame flatMap(_.apply(Pos.B7, Pos.B8, Bishop.some)) map (_._1)
+      val newGame = originalGame flatMap (_.apply(Pos.B7, Pos.B8, Bishop.some)) map (_._1)
 
       newGame must beSuccess.like {
         case nonDrawnGame =>
@@ -260,7 +260,7 @@ g4 {[%emt 0.200]} 34. Rxg4 {[%emt 0.172]} 0-1"""
       val position = "8/8/4BbP1/4p3/4P3/8/8/8 b - -"
       val originalGame = fenToGame(position, Antichess)
 
-      val newGame = originalGame flatMap(_.playMoves(Pos.F6 -> Pos.G7))
+      val newGame = originalGame flatMap (_.playMoves(Pos.F6 -> Pos.G7))
 
       newGame must beSuccess.like {
         case nonDrawnGame =>

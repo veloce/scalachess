@@ -1,7 +1,5 @@
 package chess
 
-import Pos._
-
 sealed trait Role {
   val forsyth: Char
   lazy val forsythUpper: Char = forsyth.toUpper
@@ -67,7 +65,8 @@ case object Knight extends PromotableRole {
     _.right flatMap (_.upRight),
     _.right flatMap (_.downRight),
     _.down flatMap (_.downLeft),
-    _.down flatMap (_.downRight))
+    _.down flatMap (_.downRight)
+  )
   def dir(from: Pos, to: Pos) = None
   val projection = false
 }
@@ -104,11 +103,11 @@ object Role {
     name flatMap promotable
 
   def valueOf(r: Role): Option[Int] = r match {
-    case Pawn   => Some(1)
+    case Pawn => Some(1)
     case Knight => Some(3)
     case Bishop => Some(3)
-    case Rook   => Some(5)
-    case Queen  => Some(9)
-    case King   => None
+    case Rook => Some(5)
+    case Queen => Some(9)
+    case King => None
   }
 }

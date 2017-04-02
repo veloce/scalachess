@@ -1,7 +1,6 @@
 package chess
 
 import scalaz.Validation.FlatMap._
-import scala.collection.immutable.HashSet
 import variant.Atomic
 
 class AtomicVariantTest extends ChessTest {
@@ -374,7 +373,8 @@ class AtomicVariantTest extends ChessTest {
           G1 -> F3,
           D5 -> E4,
           F1 -> B5,
-          D8 -> D2))
+          D8 -> D2
+        ))
         successGame must beSuccess.like {
           case game =>
             game.situation.pp.variantEnd must beTrue
@@ -407,15 +407,15 @@ class AtomicVariantTest extends ChessTest {
       val game = fenToGame(position, Atomic)
 
       game must beSuccess.like {
-        case gm =>
-          gm.situation.end must beFalse
+        case game =>
+          game.situation.end must beFalse
       }
 
       val drawGame = game flatMap (_.playMoves(Pos.G3 -> Pos.G2))
 
       drawGame must beSuccess.like {
-        case gm =>
-          gm.situation.board.variant.insufficientWinningMaterial(gm.situation.board, Color.White) must beTrue
+        case game =>
+          game.situation.board.variant.insufficientWinningMaterial(game.situation.board, Color.White) must beTrue
       }
 
     }
@@ -427,9 +427,9 @@ class AtomicVariantTest extends ChessTest {
       val game = originalGame flatMap (_.playMoves(Pos.G4 -> Pos.G5))
 
       game must beSuccess.like {
-        case gm =>
-          gm.situation.autoDraw must beTrue
-          gm.situation.end must beTrue
+        case game =>
+          game.situation.autoDraw must beTrue
+          game.situation.end must beTrue
       }
 
     }
@@ -439,6 +439,19 @@ class AtomicVariantTest extends ChessTest {
       val game = fenToGame(position, Atomic)
       val newGame = game flatMap (_.playMove(
         Pos.H7, Pos.H8, Bishop.some
+      ))
+
+      newGame must beSuccess.like {
+        case game =>
+          game.situation.end must beFalse
+      }
+    }
+
+    "Not draw inappropriately on three bishops (of both square colors)" in {
+      val position = "8/5k2/8/8/8/8/4pKb1/5b2 b - - 1 44"
+      val game = fenToGame(position, Atomic)
+      val newGame = game flatMap (_.playMove(
+        Pos.E2, Pos.E1, Bishop.some
       ))
 
       newGame must beSuccess.like {

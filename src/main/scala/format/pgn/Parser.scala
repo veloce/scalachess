@@ -12,7 +12,8 @@ object Parser {
     san: String,
     glyphs: Glyphs,
     comments: List[String],
-    variations: List[List[StrMove]])
+    variations: List[List[StrMove]]
+  )
 
   def full(pgn: String): Valid[ParsedPgn] = try {
     val preprocessed = pgn.lines.map(_.trim).filter {
@@ -21,13 +22,17 @@ object Parser {
       .replace("[pgn]", "")
       .replace("[/pgn]", "")
       .replace("‑", "-")
+      .replace("–", "-")
       .replace("e.p.", "") // silly en-passant notation
     for {
       splitted ← splitTagAndMoves(preprocessed)
-      (tagStr, moveStr) = splitted
+      tagStr = splitted._1
+      moveStr = splitted._2
       tags ← TagParser(tagStr)
       parsedMoves ← MovesParser(moveStr)
-      (init, strMoves, resultOption) = parsedMoves
+      init = parsedMoves._1
+      strMoves = parsedMoves._2
+      resultOption = parsedMoves._3
       tags2 = resultOption.filterNot(_ => tags.exists(_.name == Tag.Result)).fold(tags)(t => tags :+ t)
       sans ← objMoves(strMoves, getVariantFromTags(tags2))
     } yield ParsedPgn(init, tags2, sans)
@@ -45,10 +50,12 @@ object Parser {
 
   def moves(str: String, variant: Variant): Valid[List[San]] = moves(
     str.split(' ').toList,
-    variant)
+    variant
+  )
   def moves(strMoves: List[String], variant: Variant): Valid[List[San]] = objMoves(
     strMoves.map { StrMove(_, Glyphs.empty, Nil, Nil) },
-    variant)
+    variant
+  )
   def objMoves(strMoves: List[StrMove], variant: Variant): Valid[List[San]] =
     strMoves.map {
       case StrMove(san, glyphs, comments, variations) => (
@@ -80,7 +87,7 @@ object Parser {
     def apply(pgn: String): Valid[(InitialPosition, List[StrMove], Option[Tag])] =
       parseAll(strMoves, pgn) match {
         case Success((init, moves, result), _) => chess.success(init, moves, result map { r => Tag(_.Result, r) })
-        case err                               => chess.failure("Cannot parse moves: %s\n%s".format(err.toString, pgn))
+        case err => chess.failure("Cannot parse moves: %s\n%s".format(err.toString, pgn))
       }
 
     def strMoves: Parser[(InitialPosition, List[StrMove], Option[String])] = as("moves") {
@@ -137,8 +144,8 @@ object Parser {
     override def skipWhitespace = false
 
     private def rangeToMap(r: Iterable[Char]) = r.zipWithIndex.toMap mapValues (_ + 1)
-    val fileMap = rangeToMap('a' to 'h')
-    val rankMap = rangeToMap('1' to '8')
+    private val fileMap = rangeToMap('a' to 'h')
+    private val rankMap = rangeToMap('1' to '8')
 
     private val MoveR = """^(N|B|R|Q|K|)([a-h]?)([1-8]?)(x?)([a-h][0-9])(=?[NBRQ]?)(\+?)(\#?)$""".r
     private val DropR = """^(N|B|R|Q|P)@([a-h][1-8])(\+?)(\#?)$""".r
@@ -146,7 +153,7 @@ object Parser {
     def apply(str: String, variant: Variant): Valid[San] = {
       if (str.size == 2) Pos.posAt(str).fold(slow(str)) { pos => chess.success(Std(pos, Pawn)) }
       else str match {
-        case "O-O" | "o-o" | "0-0"       => chess.success(Castle(KingSide))
+        case "O-O" | "o-o" | "0-0" => chess.success(Castle(KingSide))
         case "O-O-O" | "o-o-o" | "0-0-0" => chess.success(Castle(QueenSide))
         case MoveR(role, file, rank, capture, pos, prom, check, mate) =>
           role.headOption.fold[Option[Role]](Some(Pawn))(variant.rolesByPgn.get) flatMap { role =>
@@ -163,7 +170,9 @@ object Parser {
                   checkmate = mate.nonEmpty,
                   comments = Nil,
                   glyphs = Glyphs.empty,
-                  variations = Nil)))
+                  variations = Nil
+                )
+              ))
             }
           } getOrElse slow(str)
         case DropR(roleS, posS, check, mate) =>
@@ -177,7 +186,9 @@ object Parser {
                   checkmate = mate.nonEmpty,
                   comments = Nil,
                   glyphs = Glyphs.empty,
-                  variations = Nil)))
+                  variations = Nil
+                )
+              ))
             }
           } getOrElse chess.failure(s"Cannot parse drop: $str")
         case _ => slow(str)
@@ -187,7 +198,7 @@ object Parser {
     private def slow(str: String): Valid[San] =
       parseAll(move, str) match {
         case Success(san, _) => chess.success(san)
-        case err             => chess.failure("Cannot parse move: %s\n%s".format(err.toString, str))
+        case err => chess.failure("Cannot parse move: %s\n%s".format(err.toString, str))
       }
 
     def move: Parser[San] = castle | standard
@@ -231,7 +242,8 @@ object Parser {
     def disambiguated: Parser[Std] = as("disambiguated") {
       role ~ opt(file) ~ opt(rank) ~ x ~ dest ^^ {
         case ro ~ fi ~ ra ~ ca ~ de => Std(
-          dest = de, role = ro, capture = ca, file = fi, rank = ra)
+          dest = de, role = ro, capture = ca, file = fi, rank = ra
+        )
       }
     }
 
@@ -239,7 +251,8 @@ object Parser {
     def disambiguatedPawn: Parser[Std] = as("disambiguated") {
       opt(file) ~ opt(rank) ~ x ~ dest ^^ {
         case fi ~ ra ~ ca ~ de => Std(
-          dest = de, role = Pawn, capture = ca, file = fi, rank = ra)
+          dest = de, role = Pawn, capture = ca, file = fi, rank = ra
+        )
       }
     }
 
@@ -254,7 +267,8 @@ object Parser {
     def glyph: Parser[Glyph] = as("glyph") {
       mapParser(
         Glyph.MoveAssessment.all.sortBy(_.symbol.size).map { g => g.symbol -> g },
-        "glyph")
+        "glyph"
+      )
     }
 
     val x = exists("x")
@@ -286,9 +300,9 @@ object Parser {
   object TagParser extends RegexParsers with Logging {
 
     def apply(pgn: String): Valid[List[Tag]] = parseAll(all, pgn) match {
-      case f: Failure       => chess.failure("Cannot parse tags: %s\n%s".format(f.toString, pgn))
+      case f: Failure => chess.failure("Cannot parse tags: %s\n%s".format(f.toString, pgn))
       case Success(sans, _) => chess.success(sans)
-      case err              => chess.failure("Cannot parse tags: %s\n%s".format(err.toString, pgn))
+      case err => chess.failure("Cannot parse tags: %s\n%s".format(err.toString, pgn))
     }
 
     def fromFullPgn(pgn: String): Valid[List[Tag]] =

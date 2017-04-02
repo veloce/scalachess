@@ -7,7 +7,10 @@ case object ThreeCheck extends Variant(
   name = "Three-check",
   shortName = "3check",
   title = "Check your opponent 3 times to win the game.",
-  standardInitialPosition = true) {
+  standardInitialPosition = true
+) {
+
+  def pieces = Standard.pieces
 
   override val initialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 +0+0"
 

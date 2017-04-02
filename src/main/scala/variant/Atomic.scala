@@ -7,7 +7,10 @@ case object Atomic extends Variant(
   name = "Atomic",
   shortName = "Atom",
   title = "Nuke your opponent's king to win.",
-  standardInitialPosition = true) {
+  standardInitialPosition = true
+) {
+
+  def pieces = Standard.pieces
 
   override def hasMoveEffects = true
 

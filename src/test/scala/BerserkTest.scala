@@ -1,11 +1,9 @@
 package chess
 
-import Pos._
-
 class BerserkTest extends ChessTest {
 
-    def whiteBerserk(minutes: Int, seconds: Int) =
-      Clock(minutes * 60, seconds).berserk(White).remainingTime(White)
+  def whiteBerserk(minutes: Int, seconds: Int) =
+    Clock(minutes * 60, seconds).berserk(White).remainingTime(White)
 
   "berserkable" should {
     "yep" in {

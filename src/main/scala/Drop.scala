@@ -8,7 +8,8 @@ case class Drop(
     pos: Pos,
     before: Board,
     after: Board,
-    lag: FiniteDuration = 0.millis) {
+    lag: FiniteDuration = 0.millis
+) {
 
   def situationBefore = before situationOf piece.color
   def situationAfter = finalizeAfter situationOf !piece.color
@@ -25,12 +26,13 @@ case class Drop(
     )
 
     board updateHistory {
-      _.copy(positionHashes = board.variant updatePositionHashes(board, this, board.history.positionHashes))
+      _.copy(positionHashes = board.variant updatePositionHashes (board, this, board.history.positionHashes))
     }
   }
 
   def afterWithLastMove = after.copy(
-    history = after.history.withLastMove(Uci.Drop(piece.role, pos)))
+    history = after.history.withLastMove(Uci.Drop(piece.role, pos))
+  )
 
   def color = piece.color
 

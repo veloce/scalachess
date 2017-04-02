@@ -2,6 +2,8 @@ package chess
 
 import scala.concurrent.duration._
 
+import java.text.DecimalFormat
+
 // All durations are expressed in seconds
 sealed trait Clock {
   val config: Clock.Config
@@ -22,12 +24,20 @@ sealed trait Clock {
 
   def remainingTime(c: Color) = math.max(0, limit - elapsedTime(c))
 
+  def remainingDuration(c: Color): FiniteDuration =
+    (remainingTime(c) * 1000).toLong.millis
+
+  def remainingCentis(c: Color): Int = (remainingTime(c) * 100).toInt
+
+  def setRemainingCentis(c: Color, centis: Int) =
+    addTime(c, (remainingCentis(c) - centis).toFloat / 100)
+
   private def millisSinceFlag(c: Color): Option[Int] = (limit - elapsedTime(c)) match {
     case s if s <= 0 => Some((s * -1000).toInt)
-    case _           => None
+    case _ => None
   }
 
-  def remainingTimes = Color.all map { c => c -> remainingTime(c) } toMap
+  def remainingTimes = Map(White -> remainingTime(White), Black -> remainingTime(Black))
 
   def elapsedTime(c: Color) = time(c)
 
@@ -79,7 +89,8 @@ case class RunningClock(
     blackTime: Float,
     whiteBerserk: Boolean,
     blackBerserk: Boolean,
-    timer: Double) extends Clock {
+    timer: Double
+) extends Clock {
 
   val timerOption = Some(timer)
 
@@ -90,17 +101,19 @@ case class RunningClock(
   def incrementOf(c: Color) =
     if (c.fold(whiteBerserk, blackBerserk)) 0 else increment
 
-  def step(lag: FiniteDuration = 0.millis) = {
+  def step(lag: FiniteDuration = 0.millis, withInc: Boolean = true) = {
     val t = now
     val spentTime = (t - timer).toFloat
     val lagSeconds = lag.toMillis.toFloat / 1000
     val lagCompensation = lagSeconds min Clock.maxLagToCompensate max 0
+    val inc = if (withInc) incrementOf(color) else 0
     addTime(
       color,
-      (math.max(0, spentTime - lagCompensation) - incrementOf(color))
+      (math.max(0, spentTime - lagCompensation) - inc)
     ).copy(
         color = !color,
-        timer = t)
+        timer = t
+      )
   }
 
   def stop = PausedClock(
@@ -109,7 +122,8 @@ case class RunningClock(
     whiteTime = whiteTime + (if (color == White) (now - timer).toFloat else 0),
     blackTime = blackTime + (if (color == Black) (now - timer).toFloat else 0),
     whiteBerserk = whiteBerserk,
-    blackBerserk = blackBerserk)
+    blackBerserk = blackBerserk
+  )
 
   def addTime(c: Color, t: Float): RunningClock = c match {
     case White => copy(whiteTime = whiteTime + t)
@@ -120,16 +134,16 @@ case class RunningClock(
 
   def berserk(c: Color): RunningClock = addTime(c, Clock.berserkPenalty(this, color)).copy(
     whiteBerserk = whiteBerserk || c.white,
-    blackBerserk = blackBerserk || c.black)
+    blackBerserk = blackBerserk || c.black
+  )
 
   def switch: RunningClock = copy(color = !color)
 
   def takeback: RunningClock = {
-    val t = now
-    val spentTime = (t - timer).toFloat
-    addTime(color, spentTime).copy(
+    copy(
       color = !color,
-      timer = t)
+      timer = now
+    )
   }
 }
 
@@ -139,7 +153,8 @@ case class PausedClock(
     whiteTime: Float,
     blackTime: Float,
     whiteBerserk: Boolean,
-    blackBerserk: Boolean) extends Clock {
+    blackBerserk: Boolean
+) extends Clock {
 
   val timerOption = None
 
@@ -154,7 +169,8 @@ case class PausedClock(
 
   def berserk(c: Color): PausedClock = addTime(c, Clock.berserkPenalty(this, color)).copy(
     whiteBerserk = c.fold(true, whiteBerserk),
-    blackBerserk = c.fold(blackBerserk, true))
+    blackBerserk = c.fold(blackBerserk, true)
+  )
 
   def switch: PausedClock = copy(color = !color)
 
@@ -167,7 +183,8 @@ case class PausedClock(
     blackTime = blackTime,
     whiteBerserk = whiteBerserk,
     blackBerserk = blackBerserk,
-    timer = now)
+    timer = now
+  )
 }
 
 object Clock {
@@ -195,6 +212,15 @@ object Clock {
     override def toString = show
   }
 
+  // [TimeControl "600+2"] -> 10+2
+  def readPgnConfig(str: String): Option[Clock.Config] = str.split('+') match {
+    case Array(initStr, incStr) => for {
+      init <- parseIntOption(initStr)
+      inc <- parseIntOption(incStr)
+    } yield Clock.Config(init, inc)
+    case _ => None
+  }
+
   val minInitLimit = 3
   // no more than this time will be offered to the lagging player
   val maxLagToCompensate = 1f
@@ -210,19 +236,23 @@ object Clock {
       whiteTime = 0f,
       blackTime = 0f,
       whiteBerserk = false,
-      blackBerserk = false)
+      blackBerserk = false
+    )
     if (clock.limit == 0) clock
       .giveTime(White, config.increment.max(minInitLimit))
       .giveTime(Black, config.increment.max(minInitLimit))
     else clock
   }
 
+  private val limitFormatter = new DecimalFormat("#.##")
+
   def showLimit(limit: Int) = limit match {
     case l if l % 60 == 0 => l / 60
-    case 30               => "½"
-    case 45               => "¾"
-    case 90               => "1.5"
-    case _                => limit.toString
+    case 15 => "¼"
+    case 30 => "½"
+    case 45 => "¾"
+    case 90 => "1.5"
+    case _ => limitFormatter.format(limit / 60d)
   }
 
   private[chess] def berserkPenalty(clock: Clock, color: Color): Int = {
@@ -231,5 +261,16 @@ object Clock {
     if (iniTime < incTime) 0 else iniTime / 2
   }.toInt
 
-  def timeString(t: Int) = s"${t}s"
+  def formatSeconds(t: Int) = s"$t"
+
+  // def formatSeconds(t: Int) = periodFormatter.print(
+  //   org.joda.time.Duration.standardSeconds(t).toPeriod
+  // )
+
+  // private val periodFormatter = new org.joda.time.format.PeriodFormatterBuilder()
+  //   .printZeroAlways
+  //   .minimumPrintedDigits(1).appendHours.appendSeparator(":")
+  //   .minimumPrintedDigits(2).appendMinutes.appendSeparator(":")
+  //   .appendSeconds
+  //   .toFormatter
 }

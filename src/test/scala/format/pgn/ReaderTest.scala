@@ -1,8 +1,6 @@
 package chess
 package format.pgn
 
-import Pos._
-
 class ReaderTest extends ChessTest {
 
   import Fixtures._
@@ -65,6 +63,9 @@ class ReaderTest extends ChessTest {
     }
     "example from TCEC" in {
       Reader.full(fromTcec) must beSuccess
+    }
+    "from https://chessprogramming.wikispaces.com/Kasparov+versus+Deep+Blue+1996" in {
+      Reader.full(fromChessProgrammingWiki) must beSuccess
     }
     "comments and variations" in {
       Reader.full(commentsAndVariations) must beSuccess
