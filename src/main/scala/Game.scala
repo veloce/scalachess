@@ -1,7 +1,5 @@
 package chess
 
-import scala.concurrent.duration._
-
 import format.{ pgn, Uci }
 
 case class Game(
@@ -17,9 +15,9 @@ case class Game(
     orig: Pos,
     dest: Pos,
     promotion: Option[PromotableRole] = None,
-    lag: FiniteDuration = 0.millis
+    metrics: MoveMetrics = MoveMetrics()
   ): Valid[(Game, Move)] =
-    situation.move(orig, dest, promotion).map(_.normalizeCastle withLag lag) map { move =>
+    situation.move(orig, dest, promotion).map(_.normalizeCastle withMetrics metrics) map { move =>
       apply(move) -> move
     }
 
@@ -32,12 +30,16 @@ case class Game(
     val pgnMove = pgn.Dumper(situation, move, newGame.situation)
     newGame.copy(
       pgnMoves = if (pgnMoves.isEmpty) List(pgnMove) else pgnMoves :+ pgnMove,
-      clock = applyClock(move.lag, newGame.situation.status.isEmpty)
+      clock = applyClock(move.metrics, newGame.situation.status.isEmpty)
     )
   }
 
-  def drop(role: Role, pos: Pos, lag: FiniteDuration = 0.millis): Valid[(Game, Drop)] =
-    situation.drop(role, pos).map(_ withLag lag) map { drop =>
+  def drop(
+    role: Role,
+    pos: Pos,
+    metrics: MoveMetrics = MoveMetrics()
+  ): Valid[(Game, Drop)] =
+    situation.drop(role, pos).map(_ withMetrics metrics) map { drop =>
       applyDrop(drop) -> drop
     }
 
@@ -47,17 +49,18 @@ case class Game(
       player = !player,
       turns = turns + 1
     )
-    val pgnMove = pgn.Dumper(situation, drop, newGame.situation)
+    val pgnMove = pgn.Dumper(drop, newGame.situation)
     newGame.copy(
       pgnMoves = if (pgnMoves.isEmpty) List(pgnMove) else pgnMoves :+ pgnMove,
-      clock = applyClock(drop.lag, newGame.situation.status.isEmpty)
+      clock = applyClock(drop.metrics, newGame.situation.status.isEmpty)
     )
   }
 
-  private def applyClock(lag: FiniteDuration, withInc: Boolean) = clock map {
-    case c: RunningClock => c.step(lag, withInc)
-    case c: PausedClock if (turns - startedAtTurn) == 1 => c.start.switch
-    case c => c.switch
+  private def applyClock(metrics: MoveMetrics, withInc: Boolean) = clock.map { c =>
+    c.step(metrics, withInc) getOrElse {
+      if (turns - startedAtTurn == 1) c.switch.start
+      else c.switch
+    }
   }
 
   def apply(uci: Uci.Move): Valid[(Game, Move)] = apply(uci.orig, uci.dest, uci.promotion)

@@ -8,6 +8,7 @@ import variant.{ Variant, Standard }
  * http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation
  *
  * Crazyhouse & Threecheck extensions:
+ * https://github.com/ddugovic/Stockfish/wiki/FEN-extensions
  * http://scidb.sourceforge.net/help/en/FEN.html#ThreeCheck
  */
 object Forsyth {
@@ -61,7 +62,8 @@ object Forsyth {
             castles = castles,
             unmovedRooks = UnmovedRooks(unmovedRooks)
           )
-          (splitted lift 6 flatMap makeCheckCount).fold(history)(history.withCheckCount)
+          val checkCount = splitted.lift(4).flatMap(makeCheckCount(_)).orElse(splitted.lift(6).flatMap(makeCheckCount(_)))
+          checkCount.fold(history)(history.withCheckCount)
         }
       } fixCastles
     }
@@ -76,9 +78,9 @@ object Forsyth {
 
   def <<<@(variant: Variant, rawSource: String): Option[SituationPlus] = read(rawSource) { source =>
     <<@(variant, source) map { sit =>
-      val splitted = source split ' '
-      val fullMoveNumber = splitted lift 5 flatMap parseIntOption map (_ max 1 min 500)
-      val halfMoveClock = splitted lift 4 flatMap parseIntOption map (_ max 0 min 100)
+      val splitted = source.split(' ').drop(4).dropWhile(_.contains('+'))
+      val fullMoveNumber = splitted lift 1 flatMap parseIntOption map (_ max 1 min 500)
+      val halfMoveClock = splitted lift 0 flatMap parseIntOption map (_ max 0 min 100)
       SituationPlus(
         halfMoveClock.map(sit.history.setHalfMoveClock).fold(sit)(sit.withHistory),
         fullMoveNumber getOrElse 1
@@ -93,6 +95,10 @@ object Forsyth {
       white <- parseIntOption(w.toString) if white <= 3
       black <- parseIntOption(b.toString) if black <= 3
     } yield CheckCount(black, white)
+    case w :: '+' :: b :: Nil => for {
+      white <- parseIntOption(w.toString) if white <= 3
+      black <- parseIntOption(b.toString) if black <= 3
+    } yield CheckCount(3 - black, 3 - white)
     case _ => None
   }
 
@@ -102,6 +108,10 @@ object Forsyth {
       case word if (word.count('/' ==) == 8) =>
         val splitted = word.split('/')
         splitted.take(8).mkString -> splitted.lift(8)
+      case word if word.contains('[') && word.endsWith("]") =>
+        word.span('['!=) match {
+          case (position, pockets) => position -> Some(pockets.stripPrefix("[").stripSuffix("]"))
+        }
       case word => word -> None
     }
     {
@@ -177,13 +187,14 @@ object Forsyth {
       exportBoard(game.board) + exportCrazyPocket(game.board),
       game.player.letter,
       exportCastles(game.board),
-      game.situation.enPassantSquare.map(_.toString).getOrElse("-"),
-      game.halfMoveClock,
-      game.fullMoveNumber
+      game.situation.enPassantSquare.map(_.toString).getOrElse("-")
     ) ::: {
         if (game.board.variant == variant.ThreeCheck) List(exportCheckCount(game.board))
         else List()
-      }
+      } ::: List(
+        game.halfMoveClock,
+        game.fullMoveNumber
+      )
   } mkString " "
 
   def exportStandardPositionTurnCastling(board: Board, ply: Int): String = List(
@@ -193,13 +204,13 @@ object Forsyth {
   ) mkString " "
 
   private def exportCheckCount(board: Board) = board.history.checkCount match {
-    case CheckCount(white, black) => s"+$black+$white"
+    case CheckCount(white, black) => s"${3 - black}+${3 - white}"
   }
 
   private def exportCrazyPocket(board: Board) = board.crazyData match {
-    case Some(variant.Crazyhouse.Data(pockets, _)) => "/" +
+    case Some(variant.Crazyhouse.Data(pockets, _)) => "[" +
       pockets.white.roles.map(_.forsythUpper).mkString +
-      pockets.black.roles.map(_.forsyth).mkString
+      pockets.black.roles.map(_.forsyth).mkString + "]"
     case _ => ""
   }
 

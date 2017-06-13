@@ -14,7 +14,7 @@ case object Crazyhouse extends Variant(
 
   def pieces = Standard.pieces
 
-  override val initialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/ w KQkq - 0 1"
+  override val initialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR[] w KQkq - 0 1"
 
   override def valid(board: Board, strict: Boolean) = {
     val pieces = board.pieces.values
@@ -31,7 +31,7 @@ case object Crazyhouse extends Variant(
     })
     _ <- (if (role != Pawn || canDropPawnOn(pos)) success(d1) else failure(s"Can't drop $role on $pos"))
     piece = Piece(situation.color, role)
-    d2 <- ((d1.drop(piece, pos)) match {
+    d2 <- (d1.drop(piece) match {
       case Some(d2) => success(d2)
       case None => failure(s"No $piece to drop")
     })
@@ -116,7 +116,7 @@ case object Crazyhouse extends Variant(
       promoted: Set[Pos]
   ) {
 
-    def drop(piece: Piece, pos: Pos): Option[Data] =
+    def drop(piece: Piece): Option[Data] =
       pockets take piece map { nps =>
         copy(pockets = nps)
       }

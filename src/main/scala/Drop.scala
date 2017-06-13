@@ -1,14 +1,13 @@
 package chess
 
 import format.Uci
-import scala.concurrent.duration._
 
 case class Drop(
     piece: Piece,
     pos: Pos,
     before: Board,
     after: Board,
-    lag: FiniteDuration = 0.millis
+    metrics: MoveMetrics = MoveMetrics()
 ) {
 
   def situationBefore = before situationOf piece.color
@@ -39,7 +38,7 @@ case class Drop(
 
   def withAfter(newBoard: Board) = copy(after = newBoard)
 
-  def withLag(l: FiniteDuration) = copy(lag = l)
+  def withMetrics(m: MoveMetrics) = copy(metrics = m)
 
   def toUci = Uci.Drop(piece.role, pos)
 

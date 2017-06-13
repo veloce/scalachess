@@ -2,9 +2,10 @@ name := "scalachess"
 
 organization := "org.lichess"
 
-version := "5.3"
+version := "6.5"
 
-scalaVersion := "2.11.8"
+scalaVersion := "2.11.11"
+crossScalaVersions := Seq("2.11.11", "2.12.2")
 
 libraryDependencies ++= List(
   "org.specs2" %% "specs2-core" % "3.6" % "test",
@@ -17,14 +18,18 @@ libraryDependencies ++= List(
 // updateOptions := updateOptions.value.withCachedResolution(true)
 
 resolvers ++= Seq(
+  "lila-maven" at "https://raw.githubusercontent.com/ornicar/lila-maven/master",
   "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases")
 
 scalacOptions ++= Seq(
   "-deprecation", "-unchecked", "-feature", "-language:_",
   "-Xfatal-warnings",
   "-Ywarn-unused-import", "-Ywarn-value-discard", "-Ywarn-dead-code",
-  "-Ywarn-unused", "-Xlint:missing-interpolator",
-  "-Ybackend:GenBCode", "-Ydelambdafy:method", "-target:jvm-1.8")
+  // "-Ywarn-unused:-params,_",
+  "-Xlint:missing-interpolator",
+  "-Ydelambdafy:method", "-target:jvm-1.8")
+
+publishTo := Some(Resolver.file("file",  new File(sys.props.getOrElse("publishTo", ""))))
 
 import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform

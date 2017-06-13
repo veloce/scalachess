@@ -38,9 +38,9 @@ object Parser {
     } yield ParsedPgn(init, tags2, sans)
   }
   catch {
-    case e: StackOverflowError =>
+    case _: StackOverflowError =>
       println(pgn)
-      sys error s"### StackOverflowError ### in PGN parser"
+      sys error "### StackOverflowError ### in PGN parser"
   }
 
   def getVariantFromTags(tags: List[Tag]): Variant =
@@ -85,6 +85,8 @@ object Parser {
 
     override val whiteSpace = """(\s|\t|\r?\n)+""".r
 
+    private def cleanComments(comments: List[String]) = comments.map(_.trim).filter(_.nonEmpty)
+
     def apply(pgn: String): Valid[(InitialPosition, List[StrMove], Option[Tag])] =
       parseAll(strMoves, pgn) match {
         case Success((init, moves, result), _) => chess.success(init, moves, result map { r => Tag(_.Result, r) })
@@ -93,7 +95,7 @@ object Parser {
 
     def strMoves: Parser[(InitialPosition, List[StrMove], Option[String])] = as("moves") {
       (commentary*) ~ (strMove*) ~ (result?) ~ (commentary*) ^^ {
-        case coms ~ sans ~ res ~ _ => (InitialPosition(coms), sans, res)
+        case coms ~ sans ~ res ~ _ => (InitialPosition(cleanComments(coms)), sans, res)
       }
     }
 
@@ -101,7 +103,7 @@ object Parser {
 
     def strMove: Parser[StrMove] = as("move") {
       ((number | commentary)*) ~> (moveRegex ~ nagGlyphs ~ rep(commentary) ~ rep(variation)) <~ (moveExtras*) ^^ {
-        case san ~ glyphs ~ comments ~ variations => StrMove(san, glyphs, comments, variations)
+        case san ~ glyphs ~ comments ~ variations => StrMove(san, glyphs, cleanComments(comments), variations)
       }
     }
 
@@ -130,7 +132,7 @@ object Parser {
     def commentary: Parser[String] = blockCommentary | inlineCommentary
 
     def blockCommentary: Parser[String] = as("block comment") {
-      "{" ~> """[^\}]+""".r <~ "}"
+      "{" ~> """[^\}]*""".r <~ "}"
     }
 
     def inlineCommentary: Parser[String] = as("inline comment") {
@@ -338,6 +340,6 @@ object Parser {
     ensureTagsNewline(pgn).lines.toList.map(_.trim).filter(_.nonEmpty) span { line =>
       line lift 0 contains '['
     } match {
-      case (tagLines, moveLines) => success(tagLines.mkString("\n") -> moveLines.mkString("\n"))
+      case (tagLines, moveLines) => chess.success(tagLines.mkString("\n") -> moveLines.mkString("\n"))
     }
 }

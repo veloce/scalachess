@@ -2,13 +2,11 @@ package chess
 
 import chess.format.{ Forsyth, Visual }
 import chess.variant.Variant
-import org.specs2.matcher.Matcher
+import org.specs2.matcher.{ Matcher, ValidationMatchers }
 import org.specs2.mutable.Specification
 import ornicar.scalalib.test.ValidationMatchers
 
-trait ChessTest
-    extends Specification
-    with ValidationMatchers {
+trait ChessTest extends Specification with ValidationMatchers {
 
   implicit def stringToBoard(str: String): Board = Visual << str
 

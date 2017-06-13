@@ -287,6 +287,17 @@ class ForsythTest extends ChessTest {
   }
   "crazyhouse" should {
     import variant.Crazyhouse._
+    "write" in {
+      "initial" in {
+        f >> Game(Crazyhouse) must_== Crazyhouse.initialFen
+      }
+      "scandinavian" in {
+        val moves = List(E2 -> E4, D7 -> D5, E4 -> D5)
+        Game(Crazyhouse).playMoveList(moves) must beSuccess.like {
+          case g => f >> g must_== "rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR[P] b KQkq - 3 2"
+        }
+      }
+    }
     "read" in {
       "nope" in {
         f <<< "2b2rk1/3p2pp/2pNp3/4PpN1/qp1P3P/4P1K1/6P1/1Q6 w - f6 0 36" must beSome.like {
@@ -302,6 +313,14 @@ class ForsythTest extends ChessTest {
         f <<< "2b2rk1/3p2pp/2pNp3/4PpN1/qp1P3P/4P1K1/6P1/1Q6/pPP w - f6 0 36" must beSome.like {
           case s => s.situation.board.crazyData must beSome.like {
             case Data(Pockets(Pocket(Pawn :: Pawn :: Nil), Pocket(Pawn :: Nil)), promoted) =>
+              promoted must beEmpty
+          }
+        }
+      }
+      "winboard pockets" in {
+        f <<< "r1bk3r/ppp2ppp/4p3/1B1pP3/1b1N4/2N2qPp/PPP2NbP/4R1KR[PNq] b - - 39 20" must beSome.like {
+          case s => s.situation.board.crazyData must beSome.like {
+            case Data(Pockets(Pocket(Pawn :: Knight :: Nil), Pocket(Queen :: Nil)), promoted) =>
               promoted must beEmpty
           }
         }
@@ -342,13 +361,13 @@ class ForsythTest extends ChessTest {
       "no checks" in {
         val moves = List(E2 -> E4, C7 -> C5, G1 -> F3, G8 -> H6, A2 -> A3)
         Game(ThreeCheck).playMoveList(moves take 5) must beSuccess.like {
-          case g => f >> g must_== "rnbqkb1r/pp1ppppp/7n/2p5/4P3/P4N2/1PPP1PPP/RNBQKB1R b KQkq - 0 3 +0+0"
+          case g => f >> g must_== "rnbqkb1r/pp1ppppp/7n/2p5/4P3/P4N2/1PPP1PPP/RNBQKB1R b KQkq - 3+3 0 3"
         }
       }
       "checks" in {
         val moves = List(E2 -> E4, E7 -> E5, F1 -> C4, G8 -> F6, B1 -> C3, F6 -> E4, C4 -> F7)
         Game(ThreeCheck).playMoveList(moves) must beSuccess.like {
-          case g => f >> g must_== "rnbqkb1r/pppp1Bpp/8/4p3/4n3/2N5/PPPP1PPP/R1BQK1NR b KQkq - 0 4 +1+0"
+          case g => f >> g must_== "rnbqkb1r/pppp1Bpp/8/4p3/4n3/2N5/PPPP1PPP/R1BQK1NR b KQkq - 2+3 0 4"
         }
       }
     }
@@ -371,6 +390,13 @@ class ForsythTest extends ChessTest {
         f <<< "rnb1kbnr/pppp1ppp/8/4p3/4PP1q/8/PPPPK1PP/RNBQ1BNR b kq - 2 3 +1+2" must beSome.like {
           case s =>
             s.situation.board.history.checkCount.white must_== 2
+            s.situation.board.history.checkCount.black must_== 1
+        }
+      }
+      "winboard checks" in {
+        f <<< "r1bqkbnr/pppp1Qpp/2n5/4p3/4P3/8/PPPP1PPP/RNB1KBNR b KQkq - 2+3 0 3" must beSome.like {
+          case s =>
+            s.situation.board.history.checkCount.white must_== 0
             s.situation.board.history.checkCount.black must_== 1
         }
       }

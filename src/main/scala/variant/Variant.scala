@@ -64,7 +64,7 @@ abstract class Variant(
 
   def kingSafety(a: Actor, m: Move): Boolean = kingSafety(
     m,
-    if (a.piece is King) (_ => true) else if (a.check) (_.role.attacker) else (_.role.projection),
+    if ((a.piece is King) || a.check) (_ => true) else (_.role.projection),
     if (a.piece.role == King) None else a.board kingPosOf a.color
   )
 
@@ -96,7 +96,7 @@ abstract class Variant(
   }
 
   def drop(situation: Situation, role: Role, pos: Pos): Valid[Drop] =
-    failure(s"$this variant cannot drop pieces")
+    failure(s"$this variant cannot drop $situation $role $pos")
 
   def staleMate(situation: Situation): Boolean = !situation.check && situation.moves.isEmpty
 

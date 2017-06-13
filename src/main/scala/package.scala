@@ -46,6 +46,6 @@ package object chess {
     Some(java.lang.Integer.parseInt(str))
   }
   catch {
-    case e: NumberFormatException => None
+    case _: NumberFormatException => None
   }
 }
