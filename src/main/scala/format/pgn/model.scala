@@ -4,6 +4,8 @@ package pgn
 
 import scala._
 
+import java.time.Duration
+
 case class Pgn(
     tags: List[Tag],
     turns: List[Turn],
@@ -141,15 +143,5 @@ object Move {
   private def noDoubleLineBreak(txt: String) =
     noDoubleLineBreakRegex.replaceAllIn(txt, "\n")
 
-  private def formatPgnSeconds(t: Int) = periodFormatter.print(
-    org.joda.time.Duration.standardSeconds(t).toPeriod
-  )
-
-  private[this] val periodFormatter = new org.joda.time.format.PeriodFormatterBuilder()
-    .printZeroAlways
-    .minimumPrintedDigits(1).appendHours.appendSeparator(":")
-    .minimumPrintedDigits(2).appendMinutes.appendSeparator(":")
-    .appendSeconds
-    .toFormatter
-
+  private def formatPgnSeconds(t: Int) = Duration.ofSeconds(t.toLong).toString
 }

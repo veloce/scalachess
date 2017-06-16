@@ -1,9 +1,6 @@
 package chess
 package format.pgn
 
-import org.joda.time.DateTimeZone
-import org.joda.time.format.DateTimeFormat
-
 case class Tag(name: TagType, value: String) {
 
   override def toString = s"""[$name "$value"]"""
@@ -20,12 +17,8 @@ object Tag {
   case object Event extends TagType
   case object Site extends TagType
   case object Date extends TagType
-  case object UTCDate extends TagType {
-    val format = DateTimeFormat forPattern "yyyy.MM.dd" withZone DateTimeZone.UTC
-  }
-  case object UTCTime extends TagType {
-    val format = DateTimeFormat forPattern "HH:mm:ss" withZone DateTimeZone.UTC
-  }
+  case object UTCDate extends TagType
+  case object UTCTime extends TagType
   case object Round extends TagType
   case object White extends TagType
   case object Black extends TagType
