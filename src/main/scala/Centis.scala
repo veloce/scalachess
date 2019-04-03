@@ -3,29 +3,32 @@ package chess
 import scala.concurrent.duration._
 
 // maximum centis = Int.MaxValue / 100 / 60 / 60 / 24 = 248 days
-case class Centis(centis: Int) extends AnyVal with Ordered[Centis] {
+final case class Centis(centis: Int) extends AnyVal with Ordered[Centis] {
 
   def roundTenths: Int =
     if (centis > 0) (centis + 5) / 10 else (centis - 4) / 10
-  def roundSeconds: Int = math.round(toSeconds)
+  def roundSeconds: Int = Math.round(centis * 0.01f)
 
-  def toSeconds: Float = centis * 0.01f
+  def toSeconds: BigDecimal = java.math.BigDecimal.valueOf(centis, 2)
   def millis: Long = centis * 10l
   def toDuration = FiniteDuration(millis, MILLISECONDS)
 
   def +(other: Centis) = Centis(centis + other.centis)
   def -(other: Centis) = Centis(centis - other.centis)
   def *(scalar: Int) = Centis(scalar * centis)
+  def *~(scalar: Float) = Centis(scalar * centis)
+  def *~(scalar: Double) = Centis(scalar * centis)
+  def /(div: Int) = div != 0 option Centis(centis / div)
   def unary_- = Centis(-centis)
 
-  def abs: Centis = Centis(centis.abs)
+  def avg(other: Centis) = Centis((centis + other.centis) >> 1)
 
   def compare(other: Centis) = centis - other.centis
 
-  def atMost(o: Centis) = if (centis > o.centis) o else this
-  def atLeast(o: Centis) = if (centis < o.centis) o else this
+  def atMost(o: Centis) = Centis(Math.min(centis, o.centis))
+  def atLeast(o: Centis) = Centis(Math.max(centis, o.centis))
 
-  def nonNeg = if (centis >= 0) this else Centis(0)
+  def nonNeg = Centis(Math.max(centis, 0))
 }
 
 object Centis {
@@ -42,10 +45,31 @@ object Centis {
     else value.toInt
   }
 
-  def apply(d: FiniteDuration): Centis = Centis {
-    if (d.unit eq MILLISECONDS) d.length / 10
-    else d.toMillis / 10
+  implicit final class CentisScalar(val scalar: Int) extends AnyVal {
+    def *(o: Centis) = o * scalar
   }
+
+  implicit final class CentisScalarF(val scalar: Float) extends AnyVal {
+    def *~(o: Centis) = o *~ scalar
+  }
+
+  implicit final class CentisScalarD(val scalar: Double) extends AnyVal {
+    def *~(o: Centis) = o *~ scalar
+  }
+
+  def apply(l: Long): Centis = Centis {
+    if (l.toInt == l) l.toInt
+    else if (l > 0) Integer.MAX_VALUE
+    else Integer.MIN_VALUE
+  }
+
+  def apply(d: FiniteDuration): Centis = Centis.ofMillis {
+    if (d.unit eq MILLISECONDS) d.length
+    else d.toMillis
+  }
+
+  def apply(f: Float): Centis = Centis(Math.round(f))
+  def apply(d: Double): Centis = Centis(Math.round(d))
 
   def ofSeconds(s: Int) = Centis(100 * s)
   def ofMillis(i: Int) = Centis((if (i > 0) i + 5 else i - 4) / 10)

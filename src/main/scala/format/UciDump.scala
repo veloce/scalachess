@@ -11,7 +11,7 @@ object UciDump {
 
   def apply(moves: List[String], initialFen: Option[String], variant: Variant): Valid[List[String]] =
     if (moves.isEmpty) success(Nil)
-    else Replay(moves, initialFen, variant) map apply
+    else Replay(moves, initialFen, variant) flatMap (_.valid) map apply
 
   def move(variant: Variant)(mod: MoveOrDrop): String = mod match {
     case Left(m) => m.castle.fold(m.toUci.uci) {

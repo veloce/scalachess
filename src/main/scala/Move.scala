@@ -6,7 +6,7 @@ case class Move(
     piece: Piece,
     orig: Pos,
     dest: Pos,
-    before: Board,
+    situationBefore: Situation,
     after: Board,
     capture: Option[Pos],
     promotion: Option[PromotableRole],
@@ -14,9 +14,9 @@ case class Move(
     enpassant: Boolean,
     metrics: MoveMetrics = MoveMetrics()
 ) {
+  def before = situationBefore.board
 
-  def situationBefore = before situationOf piece.color
-  def situationAfter = finalizeAfter situationOf !piece.color
+  def situationAfter = Situation(finalizeAfter, !piece.color)
 
   def withHistory(h: History) = copy(after = after withHistory h)
 
@@ -48,8 +48,10 @@ case class Move(
 
   def applyVariantEffect: Move = before.variant addVariantEffect this
 
-  def afterWithLastMove = after.copy(
-    history = after.history.withLastMove(toUci)
+  def afterWithLastMove = after.variant.finalizeBoard(
+    after.copy(history = after.history.withLastMove(toUci)),
+    toUci,
+    capture flatMap before.apply
   )
 
   // does this move capture an opponent piece?

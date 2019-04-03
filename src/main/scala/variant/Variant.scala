@@ -5,7 +5,8 @@ import scala.collection.breakOut
 
 import Pos.posAt
 
-abstract class Variant(
+// Correctness depends on singletons for each variant ID
+abstract class Variant private[variant] (
     val id: Int,
     val key: String,
     val name: String,
@@ -48,7 +49,7 @@ abstract class Variant(
   }(breakOut)
 
   // Optimised for performance
-  def kingThreatened(board: Board, color: Color, to: Pos, filter: Piece => Boolean = _ => true): Boolean = {
+  def pieceThreatened(board: Board, color: Color, to: Pos, filter: Piece => Boolean = _ => true): Boolean = {
     board.pieces exists {
       case (pos, piece) if piece.color == color && filter(piece) && piece.eyes(pos, to) =>
         (!piece.role.projection) || piece.role.dir(pos, to).exists {
@@ -57,6 +58,8 @@ abstract class Variant(
       case _ => false
     }
   }
+
+  def kingThreatened(board: Board, color: Color, to: Pos, filter: Piece => Boolean = _ => true) = pieceThreatened(board, color, to, filter)
 
   def kingSafety(m: Move, filter: Piece => Boolean, kingPos: Option[Pos]): Boolean = !{
     kingPos exists { kingThreatened(m.after, !m.color, _, filter) }
@@ -133,11 +136,11 @@ abstract class Variant(
    */
   def addVariantEffect(move: Move): Move = move
 
-  def updatePositionHashes(board: Board, move: Move, hash: chess.PositionHash): PositionHash =
-    Hash(Situation(board, !move.piece.color)) ++ {
-      if ((move.piece is Pawn) || move.captures || move.promotes) Array(): PositionHash
-      else hash
-    }
+  def updatePositionHashes(board: Board, move: Move, hash: chess.PositionHash): PositionHash = {
+    val newHash = Hash(Situation(board, !move.piece.color))
+    if ((move.piece is Pawn) || move.captures || move.promotes) newHash
+    else newHash ++ hash
+  }
 
   def updatePositionHashes(board: Board, drop: Drop, hash: chess.PositionHash): PositionHash = Array()
 
@@ -174,6 +177,10 @@ abstract class Variant(
   def isUnmovedPawn(color: Color, pos: Pos) = pos.y == color.fold(2, 7)
 
   override def toString = s"Variant($name)"
+
+  override def equals(that: Any): Boolean = this eq that.asInstanceOf[AnyRef]
+
+  override def hashCode: Int = id
 }
 
 object Variant {

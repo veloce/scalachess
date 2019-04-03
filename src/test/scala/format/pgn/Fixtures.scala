@@ -27,6 +27,11 @@ object Fixtures {
     "e3 e5 d3 f5 Qe2 d5 Bd2 Nd7 Nc3 Ngf6 0-0-0 Bb4"
   )
 
+  lazy val annotatedCastles = for {
+    castle <- List("O-O", "o-o", "0-0", "O-O-O", "o-o-o", "0-0-0")
+    annotation <- List("+", "#", "+?", "#!")
+  } yield s"$castle$annotation"
+
   // https://github.com/ornicar/lila/issues/2441
   val enpassantEP = """
 1. d4 Nf6 2. c4 e6 3. Nf3 c5 4. d5 exd5 5. cxd5 d6 6. Nc3 g6 7. Nd2 Bg7 8. e4 O-O 9. Be2 Na6 10. O-O Qe7 11. Re1 Nc7 12. a4 b6 13. h3 Nd7 14. Nb5 Nxb5 15. axb5 Qd8 16. Ra4 Nf6 17. Nf3 a5 18. bxa6 e.p. Bd7 1-0
@@ -71,6 +76,40 @@ object Fixtures {
 
 1.e4 e5 2.Nf3 Nc6 3.Nc3 Bc5 4.Be2 Nf6 5.O-O d6 6.d3 Nd4 7.Nxd4 Bxd4 8.Nd5 Nxd5 9.exd5 N@f6 10.c3 Bb6 11.Bg5 N@f4 12.N@e4 Rg8 13.N@h6 Nxe4 14.Bxd8 N@h3+ 15.gxh3 Nxh3+ 16.Kh1 Nexf2+ 17.Rxf2 Nxf2+ 18.Kg2 gxh6+ 19.N@g4 N@e3+ 20.Kg1 Nh3+ 21.Kh1 @g2# 
 0-1
+"""
+
+val invisibleChar = """
+﻿[Event "Potsdam"]
+[Site "?"]
+[Date "2018.01.21"]
+[Round "5.1"]
+[White "XXXXX, XXXXX"]
+[Black "YYYYY, YYYYY"]
+[Result "1/2-1/2"]
+[ECO "A40"]
+[WhiteElo "1637"]
+[BlackElo "1859"]
+[Annotator "ZZZZZ"]
+[PlyCount "19"]
+[SourceDate "2017.09.30"]
+[SourceVersionDate "2017.09.30"]
+[WhiteTeam "XXXXX"]
+[BlackTeam "YYYYY"]
+
+{A40: Verschiedene (seltene) Antworten auf 1.d4} 1. e4 g6 2. d4 Bg7 3. c4 Nc6
+4. Nf3 e5 5. d5 Nd4 6. Nxd4 exd4 7. f4 (7. Bd3 d6 (7... c5 8. O-O d6 9. Nd2 Nh6
+10. b4 b6 11. bxc5 bxc5 12. Rb1 O-O 13. Qa4 Ng4 14. Nf3 f5 15. Bg5 Bf6 16. Bxf6
+Qxf6 17. Qc6 fxe4 18. Bxe4 Bf5 19. Bxf5 gxf5 20. Rfe1 Rab8 21. Rxb8 Rxb8 22. h3
+{Duessel,U (2204)-Schwierskott,M (2232) Baden 2013 1/2-1/2 (43)}) 8. O-O Nf6 9.
+Bg5 h6 10. Bh4 O-O 11. Nd2 g5 12. Bg3 Ng4 13. Rc1 Ne5 14. Bb1 h5 15. f3 h4 16.
+Bf2 d3 17. Qb3 Qf6 18. Be3 Ng6 19. Bxd3 Qxb2 20. Bxg5 Qd4+ 21. Kh1 f6 {Hansen,
+C (2621)-Sebastian,D (2384) Germany 2007 0-1}) 7... d6 $146 (7... c5 8. Bd3 d6
+9. O-O Nh6 10. Nd2 O-O 11. Nf3 f6 12. Bd2 b6 13. Qc2 Qd7 14. h3 Ba6 15. a4 Rae8
+16. Rae1 Bc8 17. Re2 Re7 18. Rfe1 Rfe8 19. e5 fxe5 20. fxe5 dxe5 21. Nxe5 Qd6
+22. Bf4 {Putz,G-Kirschner,C Pocking 2001 1/2-1/2}) 8. Be2 f5 9. exf5 Bxf5 10.
+O-O {Viel gibt es nicht zur Partie zu sagen. Obwohl Stockfish 8 die Stellung
+mit -0.10 minimal Schwarz vorne sieht, ist doch die Remisbreite sehr hoch.}
+1/2-1/2
 """
 
   val fromPosProdCloseChess = """
@@ -137,6 +176,54 @@ Bd3 f5 9. g3 Qf6 10. Nf3 c5 11. O-O Ne7 12. Bg5 Qf8 13. Nb5 Bxe4 14. Bxe4 fxe4
 1. d4 a6 2. e4 e6 3. c4 b5 4. cxb5 axb5 5. Bxb5 Bb7 6. Nc3 Bb4 7. Qe2 Qh4 8.
 Bd3 f5 9. g3 Qf6 10. Nf3 c5 11. O-O Ne7 12. Bg5 Qf8 13. Nb5 Bxe4 14. Bxe4 fxe4
 15. Qxe4 Nd5 16. Ne5 cxd4 17. Qxd5 Ra7 18. Qa8 0-1
+"""
+
+val festivalFigueira = """
+[Event "figueira"]
+[Site "?"]
+[Date "2017.10.29"]
+[Round "1.21"]
+[White "Paiva, Henrique M A Albergaria"]
+[Black "Morais, Mario Martins Freitas"]
+[Result "1-0"]
+[BlackElo "1457"]
+[WhiteElo "2110"]
+[LiveChessVersion "1.4.8"]
+[ECO "B35"]
+
+1. e4 {[%clk 1:30:58]} c5 {[%clk 1:30:58]} 2. Nf3 {[%clk 1:31:07]} g6
+{[%clk 1:31:18]} 3. d4 {[%clk 1:31:30]} cxd4 {[%clk 1:31:37]} 4. Nxd4
+{[%clk 1:31:52]} Nc6 {[%clk 1:31:42]} 5. Nc3 {[%clk 1:32:03]} Nf6 6. Bc4
+{[%clk 1:31:26]} Bg7 {[%clk 1:27:34]} 7. Be3 {[%clk 1:31:10]} Qa5
+{[%clk 1:24:02]} 8. O-O {[%clk 1:29:40]} O-O {[%clk 1:21:27]} 9. Bb3
+{[%clk 1:27:53]} d6 {[%clk 1:17:26]} 10. h3 {[%clk 1:27:38]} Bd7 {[%clk 1:15:56]}
+11. f4 Nxd4 12. Bxd4 Bc6 {[%clk 1:11:22]} 13. Re1 {[%clk 1:19:12]} Nd7
+{[%clk 1:06:46]} 14. Bxg7 {[%clk 1:13:57]} Kxg7 {[%clk 1:07:08]} 15. Qd4+
+{[%clk 1:14:21]} Kg8 {[%clk 1:06:55]} 16. Rad1 {[%clk 1:14:32]} Qc5
+{[%clk 1:04:24]} 17. Nd5 {[%clk 1:09:40]} Bxd5 {[%clk 1:01:12]} 18. exd5
+{[%clk 1:09:44]} Qxd4+ {[%clk 0:51:57]} 19. Rxd4 {[%clk 1:09:58]} Nc5
+{[%clk 0:51:59]} 20. Rxe7 {[%clk 1:09:08]} Rfe8 {[%clk 0:52:17]} 21. Rxe8+
+{[%clk 1:07:56]} Rxe8 {[%clk 0:52:37]} 22. Kf2 {[%clk 1:05:57]} f5
+{[%clk 0:44:33]} 23. c4 {[%clk 1:00:52]} Nxb3 {[%clk 0:41:17]} 24. axb3
+{[%clk 1:01:17]} a5 {[%clk 0:41:40]} 25. g3 {[%clk 1:01:15]} Kf7 {[%clk 0:41:46]}
+26. Rd3 {[%clk 1:00:09]} b5 {[%clk 0:36:07]} 27. Rc3 {[%clk 0:55:05]} Rc8
+{[%clk 0:35:36]} 28. Ke3 {[%clk 0:47:55]} Ke7 {[%clk 0:35:54]} 29. Kd4
+{[%clk 0:48:05]} Kd7 {[%clk 0:36:00]} 30. c5 {[%clk 0:44:27]} dxc5+
+{[%clk 0:36:29]} 31. Rxc5 {[%clk 0:44:52]} Rb8 {[%clk 0:36:45]} 32. Rc6
+{[%clk 0:45:16]} a4 {[%clk 0:35:24]} 33. b4 {[%clk 0:45:10]} a3 {[%clk 0:34:48]}
+34. bxa3 {[%clk 0:45:34]} Ra8 {[%clk 0:35:17]} 35. Rc3 {[%clk 0:44:17]} Kd6
+{[%clk 0:35:43]} 36. Re3 {[%clk 0:37:51]} Ra7 {[%clk 0:33:33]} 37. g4
+{[%clk 0:37:42]} Rc7 {[%clk 0:31:26]} 38. Re6+ {[%clk 0:37:31]} Kd7
+{[%clk 0:31:45]} 39. gxf5 {[%clk 0:37:28]} gxf5 40. Rh6 Rc4+ {[%clk 0:24:34]} 41.
+Ke5 {[%clk 0:37:50]} Re4+ {[%clk 0:24:21]} 42. Kxf5 {[%clk 1:08:14]} Re3
+{[%clk 0:54:44]} 43. Rxh7+ {[%clk 1:08:19]} Kd6 {[%clk 0:54:59]} 44. Rb7
+{[%clk 1:08:30]} Rxa3 45. Rxb5 Rxh3 {[%clk 0:54:36]} 46. Ke4 {[%clk 1:08:56]} Rh1
+{[%clk 0:54:18]} 47. Rb6+ {[%clk 1:09:12]} Kd7 {[%clk 0:54:19]} 48. f5
+{[%clk 1:07:41]} Re1+ {[%clk 0:52:42]} 49. Kd4 {[%clk 1:08:04]} Rd1+
+{[%clk 0:52:45]} 50. Ke5 {[%clk 1:08:26]} Re1+ 51. Kf6 Rd1 {[%clk 0:50:48]} 52.
+Rb5 {[%clk 1:07:13]} Kd6 {[%clk 0:50:12]} 53. Kf7 {[%clk 1:07:12]} Re1
+{[%clk 0:46:28]} 54. f6 {[%clk 1:07:52]} Re4 {[%clk 0:43:59]} 55. Kf8 Rg4 56. f7
+Re4 57. Rb6+ {[%clk 1:08:13]} Re1 {[%clk 0:37:03]} 58. Kg7+ Kd7 1-0
 """
 
 val crazyhouseFromProd = """
@@ -207,6 +294,54 @@ Nxe4 18. Bxe7 Qxe7 19. exd6 Qf6 20. Nbd2 Nxd6 21. Nc4 Nxc4 22. Bxc4 Nb6
 hxg5 29. b3 Ke6 30. a3 Kd6 31. axb4 cxb4 32. Ra5 Nd5 33. f3 Bc8 34. Kf2 Bf5
 35. Ra7 g6 36. Ra6+ Kc5 37. Ke1 Nf4 38. g3 Nxh3 39. Kd2 Kb5 40. Rd6 Kc5 41. Ra6
 Nf2 42. g4 Bd3 43. Re6 1/2-1/2"""
+
+  val stLouisFischerandom = """[ePGN "0.1;DGT LiveChess/2.2.3"]
+[Event "Champions Showdown 2018"]
+[Site "Saint Louis, United States"]
+[Date "2018.09.12"]
+[Round "6.1"]
+[White "Kasparov, Garry"]
+[Black "Topalov, Veselin"]
+[Result "*"]
+[WhiteClock "00:04:08"]
+[BlackClock "00:07:03"]
+[ReferenceTime "B/2018-09-12T15:26:56.191-05:00"]
+[FEN "rbnnqkbr/pppppppp/8/8/8/8/PPPPPPPP/RBNNQKBR w HAha - 0 1"]
+[Variant "Fischerandom"]
+[WhiteTitle "GM"]
+[BlackTitle "GM"]
+[WhiteElo "2734"]
+[BlackElo "2722"]
+
+1. d4 {[%clk 00:30:00]} {[%emt 00:00:05]} d5 {[%clk 00:29:57]} {[%emt
+00:00:14]} 2. f3 {[%clk 00:30:00]} {[%emt 00:00:04]} f6 {[%clk 00:29:16]}
+{[%emt 00:00:51]} 3. Nd3 {[%clk 00:29:58]} {[%emt 00:00:13]} c6 {[%clk
+00:28:46]} {[%emt 00:00:40]} 4. e4 {[%clk 00:29:06]} {[%emt 00:01:02]} dxe4
+{[%clk 00:28:14]} {[%emt 00:00:43]} 5. fxe4 {[%clk 00:27:57]} {[%emt 00:01:18]}
+e5 {[%clk 00:28:03]} {[%emt 00:00:20]} 6. dxe5 {[%clk 00:23:33]} {[%emt
+00:04:34]} Bxe5 {[%clk 00:26:44]} {[%emt 00:01:29]} 7. Bc5+ {[%clk 00:23:11]}
+{[%emt 00:00:32]} Bd6 {[%clk 00:26:44]} {[%emt 00:00:03]} 8. Bxd6+ {[%clk
+00:23:11]} {[%emt 00:00:03]} Nxd6 {[%clk 00:26:44]} {[%emt 00:00:01]} 9. e5
+{[%clk 00:23:11]} {[%emt 00:00:01]} fxe5 {[%clk 00:25:53]} {[%emt 00:01:00]} 10.
+O-O+ {[%clk 00:22:47]} {[%emt 00:00:34]} Bf7 {[%clk 00:23:55]} {[%emt
+00:02:09]} 11. Nxe5 {[%clk 00:22:13]} {[%emt 00:00:44]} O-O {[%clk 00:23:52]}
+{[%emt 00:00:12]} 12. c3 {[%clk 00:22:13]} {[%emt 00:00:02]} Qe7 {[%clk
+00:18:39]} {[%emt 00:05:21]} 13. Nxf7 {[%clk 00:19:46]} {[%emt 00:02:38]} Rxf7
+{[%clk 00:18:19]} {[%emt 00:00:30]} 14. Bc2 {[%clk 00:19:35]} {[%emt 00:00:22]}
+Rxf1+ {[%clk 00:18:06]} {[%emt 00:00:22]} 15. Qxf1 {[%clk 00:19:32]} {[%emt
+00:00:13]} N8f7 {[%clk 00:18:06]} {[%emt 00:00:08]} 16. Nf2 {[%clk 00:19:26]}
+{[%emt 00:00:15]} Re8 {[%clk 00:18:06]} {[%emt 00:00:08]} 17. Rd1 {[%clk
+00:15:06]} {[%emt 00:04:30]} Ne5 {[%clk 00:13:44]} {[%emt 00:04:33]} 18. Nd3
+{[%clk 00:12:31]} {[%emt 00:02:46]} Nec4 {[%clk 00:07:44]} {[%emt 00:06:10]} 19.
+Re1 {[%clk 00:12:14]} {[%emt 00:00:26]} Qf8 {[%clk 00:07:18]} {[%emt 00:00:36]}
+20. Bb3 {[%clk 00:04:16]} {[%emt 00:08:08]} Qxf1+ {[%clk 00:07:18]} {[%emt
+00:00:06]} 21. Kxf1 {[%clk 00:04:16]} {[%emt 00:00:02]} Kf8 {[%clk 00:07:18]}
+{[%emt 00:00:02]} 22. Rxe8+ {[%clk 00:04:16]} {[%emt 00:00:03]} Kxe8 {[%clk
+00:07:18]} {[%emt 00:00:01]} 23. Ke2 {[%clk 00:04:16]} {[%emt 00:00:02]} Ke7
+{[%clk 00:07:18]} {[%emt 00:00:03]} 24. Bxc4 {[%clk 00:04:08]} {[%emt
+00:00:18]} Nxc4 {[%clk 00:07:18]} {[%emt 00:00:02]} 25. b3 {[%clk 00:04:08]}
+Nd6 {[%clk 00:07:18]} {[%emt 00:00:10]} 26. Ke3 {[%clk 00:04:08]} {[%emt
+00:00:03]} *"""
 
   val inlineComments = """[Event "F/S Return Match"]
 [Site "Belgrade, Serbia Yugoslavia|JUG"]
@@ -1793,5 +1928,18 @@ Rab8 43. cxb6 Rdd8 44. N@e7+ Kh8 45. bxc7 Rdc8 46. cxb8=Q Rxc6 47. Qxf8+ Q@g8
 
 val stackOverflow = """
 [Event "?"] [Site "Anytown"] [Date "2015.??.??"] [Round "?"] [White "Beginner"] [Black "Grandmaster"] [Result "*"] [ECO "C65"] [BlackElo "3000"] [Annotator "Pickard,S."] [PlyCount "8"] [EventDate "2011.04.09"] [SourceDate "2015.04.30"] 1. e4 {[%csl Ge4][%cal Re4d5,Yd1h5,Yf1a6] [A very good chess opening move, which conforms to all the chess strategy principles discussed. White occupies one key center square with a pawn, also attacking another central point. In addition, the move also liberates the White Queen and King's Bishop. As World Champion Bobby Fischer said of 1.e4, "Best by test." If unopposed White will likely play his d-pawn forward next move!]} ({The move} 1. d4 {[%csl Gd4][%cal Yd1d3,Yc1h6,Rd4e5] also meets our requirements, sending a pawn to the center and attacking another central square. The Queen defends the pawn, and she is free to move forward. In addition, the Queen's Bishop can now develop, and White "threatens" to play his e-pawn up two squares to dominate the center.}) ( {Even a move like} 1. Nf3 {[%csl Gd4,Ge5] is quite good, bringing the Knight toward the center, and attacking two center squares. The move also brings White closer to castling his King to safety - another goal of good chess strategy in the opening.}) 1... e5 {[%csl Ge5][%cal Re5d4,Yd8h4,Yf8a3] [Black answers by staking his own claim to the center squares, occupying one and attacking another. The move makes ready to deploy the Queen and King's Bishop to active central squares. Now White cannot hope for two pawns abreast in the center.]} ({Other moves are possible of course, but any good move here will be found to fight for the center and rapidly develop the pieces to squares of maximum efficiency. For example} 1... e6 {[%cal Re6d5,Yd8h4,Yf8a3] attacks an important central square and prepares to support the d-pawn's advance two squares into the center next move. Now after} 2. d4 {(White controls the center of the chess board, an ideal arrangement according to sound chess strategy in the opening)} d5 {Black quickly strikes back in the center, firmly establishing a pawn foothold on the d5 square, for if White captures Black retakes with his e-pawn. Notice that White's e-pawn is also threatened with capture. This position begins the French Defense, a well known chess opening.}) 2. Nf3 {[%csl Re5] [An ideal chess opening move. White develops a Knight to its best square (toward the center!) and attacks the enemy pawn. Black is limited in his reply.]} ({Again, White could make other good moves, like} 2. Nc3 {[%csl Gd5,Ge4] which also meets guidelines for proper chess opening strategy. A Knight is brought out toward the center, two center squares are influenced and the White e-pawn is solidly protected.}) 2... Nc6 {[%csl Yd4, Ye5] [Excellent - a Knight is developed actively, attacking two central squares and defending the Black e-pawn. The influence of White's Knight is thus counteracted.]} 3. Bb5 {[%csl Re5][%cal Ye1g1] [Rapid deployment and no wasted motion. This move adheres to the principles of chess strategy, by preparing to castle and by undermining Black's defense of this e-pawn. Without getting bogged down in chess tactics, observe that White is not yet threatening to win the Black e-pawn, even if he could move again.]} ({Instead} 3. Bc4 {[%cal Ye1g1,Ga2g8] illustrates good chess strategy as well, placing the King's Bishop on an active square where it commands two long diagonals, attacks the d5 central square and prepares to castle.}) 3... Nf6 {[%csl Re4] [Black counterattacks! He brings out the King's Knight and controls two center squares, besides placing the enemy e-pawn under attack.]} 4. O-O {[%csl Gg1] [All according to the best chess strategy. White's King is now safely tucked away in the corner, and his King's Rook is brought toward the center. Next he will plan the development of his Queenside pieces while hampering Black's attempt to smoothly develop.]} Bc5 {[%csl Rg1][%cal Ye8g8,Ga7g1] [The King's Bishop takes up its most active post, where it commands squares leading all the way to White's King. In addition, Black is now ready to castle. This position forms part of the Berlin Defense to the Ruy Lopez.]}*
+"""
+
+  val explorerPartialDate = """[Event "Linares"]
+[Site "Linares"]
+[Date "1978.??.??"]
+[Round "?"]
+[White "Palacios de la Prida, Ernesto"]
+[Black "Debarnot, Roberto Luis"]
+[Result "0-1"]
+[WhiteElo "2335"]
+[BlackElo "2425"]
+
+1. d3 g6 2. f4 d5 3. Nf3 Bg7 4. g3 c6 5. Bg2 Qb6 6. c3 Nf6 7. Qb3 Nbd7 8. Qxb6 axb6 9. h3 Nc5 10. Nbd2 O-O 11. O-O b5 12. a3 Ra4 13. Kh2 Ne8 14. d4 Ne4 15. Nxe4 dxe4 16. Nd2 f5 17. e3 Be6 18. Re1 Ra7 19. Bf1 Nd6 20. b3 b6 21. Bb2 c5 22. Be2 Rc8 23. Rec1 h5 24. Bd1 Kf7 25. Kg2 Bf6 26. h4 Ke8 27. Kf2 Kd7 28. Rab1 Rac7 29. Ra1 Ra8 30. Rab1 Rca7 31. Rc2 Rxa3 32. Bxa3 Rxa3 33. dxc5 bxc5 34. Be2 Kc6 35. b4 c4 36. Rbc1 Nc8 37. Nb1 Ra1 38. Nd2 Ra7 39. Nb1 Nb6 40. Bd1 Nd5 41. Be2 Ra1 42. Rd1 Bf7 43. Bf1 e5 44. fxe5 Bxe5 45. Bg2 Bc7 46. Re2 Be6 47. Rb2 Nf6 48. Bh3 Nd7 49. Bf1 Ne5 50. Be2 Nd3+ 51. Bxd3 cxd3 52. Rf1 Be5 53. Kg2 Kd6 54. Rff2 Bf6 55. Rf1 Bg7 56. Kf2 Be5 57. Kg2 Bf6 58. Rff2 g5 59. Rf1 gxh4 60. gxh4 Bxh4 61. Rh1 Bg5 62. Kf2 f4 63. exf4 Bxf4 64. Re1 Ke5 0-1
 """
 }

@@ -2,24 +2,21 @@ name := "scalachess"
 
 organization := "org.lichess"
 
-version := "6.5"
+version := "8.6.22"
 
-scalaVersion := "2.11.11"
-crossScalaVersions := Seq("2.11.11", "2.12.2")
+scalaVersion := "2.12.6"
+crossScalaVersions := Seq("2.11.12", "2.12.6")
 
 libraryDependencies ++= List(
-  "org.specs2" %% "specs2-core" % "3.6" % "test",
-  "joda-time" % "joda-time" % "2.9.7",
-  "org.joda" % "joda-convert" % "1.8",
-  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.2",
-  "org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0"
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.5",
+  "org.specs2" %% "specs2-core" % "4.2.0" % "test",
+  "joda-time" % "joda-time" % "2.9.9"
 )
-
-// updateOptions := updateOptions.value.withCachedResolution(true)
 
 resolvers ++= Seq(
   "lila-maven" at "https://raw.githubusercontent.com/ornicar/lila-maven/master",
-  "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases")
+  "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
+)
 
 scalacOptions ++= Seq(
   "-deprecation", "-unchecked", "-feature", "-language:_",
@@ -27,16 +24,27 @@ scalacOptions ++= Seq(
   "-Ywarn-unused-import", "-Ywarn-value-discard", "-Ywarn-dead-code",
   // "-Ywarn-unused:-params,_",
   "-Xlint:missing-interpolator",
-  "-Ydelambdafy:method", "-target:jvm-1.8")
+  "-Ydelambdafy:method", "-target:jvm-1.8"
+)
 
-publishTo := Some(Resolver.file("file",  new File(sys.props.getOrElse("publishTo", ""))))
+scalacOptions := {
+  val old = scalacOptions.value
+  scalaBinaryVersion.value match {
+    case "2.11" => old filterNot (_ == "-Ywarn-unused:-params,_")
+    case _      => old
+  }
+}
 
-import scalariform.formatter.preferences._
-import com.typesafe.sbt.SbtScalariform
+publishTo := Some(Resolver.file("file", new File(sys.props.getOrElse("publishTo", ""))))
+
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
+import scalariform.formatter.preferences._
 
-SbtScalariform.scalariformSettings
+val preferences =
+  ScalariformKeys.preferences := ScalariformKeys.preferences.value
+    .setPreference(DoubleIndentConstructorArguments, true)
+    .setPreference(DanglingCloseParenthesis, Force)
 
-ScalariformKeys.preferences := ScalariformKeys.preferences.value
-  .setPreference(CompactControlReadability, true)
-  .setPreference(DoubleIndentClassDeclaration, true)
+Seq(preferences)
+
+excludeFilter in scalariformFormat := "FullOpeningPart*" || "EcopeningDB.scala" || "Fixtures.scala"

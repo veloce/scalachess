@@ -7,14 +7,14 @@ case object Crazyhouse extends Variant(
   id = 10,
   key = "crazyhouse",
   name = "Crazyhouse",
-  shortName = "crazy",
+  shortName = "Crazy",
   title = "Captured pieces can be dropped back on the board instead of moving a piece.",
   standardInitialPosition = true
 ) {
 
   def pieces = Standard.pieces
 
-  override val initialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR[] w KQkq - 0 1"
+  override val initialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/ w KQkq - 0 1"
 
   override def valid(board: Board, strict: Boolean) = {
     val pieces = board.pieces.values
@@ -33,7 +33,7 @@ case object Crazyhouse extends Variant(
     piece = Piece(situation.color, role)
     d2 <- (d1.drop(piece) match {
       case Some(d2) => success(d2)
-      case None => failure(s"No $piece to drop")
+      case None => failure(s"No $piece to drop on $pos")
     })
     board1 <- ((situation.board.place(piece, pos)) match {
       case Some(board1) => success(board1)
@@ -43,7 +43,7 @@ case object Crazyhouse extends Variant(
   } yield Drop(
     piece = piece,
     pos = pos,
-    before = situation.board,
+    situationBefore = situation,
     after = board1 withCrazyData d2
   )
 
@@ -85,6 +85,10 @@ case object Crazyhouse extends Variant(
 
   override def checkmate(situation: Situation) =
     super.checkmate(situation) && !canDropStuff(situation)
+
+  // there is always sufficient mating material in Crazyhouse
+  override def insufficientWinningMaterial(board: Board, color: Color) = false
+  override def insufficientWinningMaterial(board: Board) = false
 
   def possibleDrops(situation: Situation): Option[List[Pos]] =
     if (!situation.check) None
@@ -147,9 +151,9 @@ case object Crazyhouse extends Variant(
       black take piece.role map { np => copy(black = np) }
     )
 
-    def store(piece: Piece) = copy(
-      white = piece.color.fold(white, white store piece.role),
-      black = piece.color.fold(black store piece.role, black)
+    def store(piece: Piece) = piece.color.fold(
+      copy(black = black store piece.role),
+      copy(white = white store piece.role)
     )
   }
 

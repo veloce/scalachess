@@ -1,30 +1,38 @@
 package chess
 
+trait DecayingRecorder {
+  def record(value: Float): DecayingStats
+}
+
 final case class DecayingStats(
     mean: Float,
-    variance: Float,
+    deviation: Float,
     decay: Float
-) {
-  def record[T](values: Traversable[T])(implicit n: Numeric[T]): DecayingStats =
-    values.foldLeft(this) { (s, v) => s record n.toFloat(v) }
-
-  def record(value: Float) = {
+) extends DecayingRecorder {
+  def record(value: Float): DecayingStats = {
     val delta = mean - value
 
     copy(
       mean = value + decay * delta,
-      variance = decay * variance + (1 - decay) * delta * delta
+      deviation = decay * deviation + (1 - decay) * Math.abs(delta)
     )
   }
 
-  def stdDev = Math.sqrt(variance).toFloat
+  def record[T](values: Traversable[T])(implicit n: Numeric[T]): DecayingStats =
+    values.foldLeft(this) { (s, v) => s record n.toFloat(v) }
+}
+
+final case class EmptyDecayingStats(
+    deviation: Float,
+    decay: Float
+) extends DecayingRecorder {
+  def record(value: Float) = DecayingStats(
+    mean = value,
+    deviation = deviation,
+    decay = decay
+  )
 }
 
 object DecayingStats {
-  def empty(baseVariance: Float, decay: Float = 0.9f)(value: Float) =
-    new DecayingStats(
-      mean = value,
-      variance = baseVariance + 0.5f * value * value,
-      decay = decay
-    )
+  val empty = EmptyDecayingStats
 }

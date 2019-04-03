@@ -5,18 +5,20 @@ import variant.Variant
 
 import scala.util.parsing.combinator._
 
+import scala.collection.breakOut
+
 // http://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm
 object Parser {
 
   case class StrMove(
-    san: String,
-    glyphs: Glyphs,
-    comments: List[String],
-    variations: List[List[StrMove]]
+      san: String,
+      glyphs: Glyphs,
+      comments: List[String],
+      variations: List[List[StrMove]]
   )
 
   def full(pgn: String): Valid[ParsedPgn] = try {
-    val preprocessed = pgn.lines.map(_.trim).filter {
+    val preprocessed = augmentString(pgn).lines.map(_.trim).filter {
       _.headOption != Some('%')
     }.mkString("\n")
       .replace("[pgn]", "")
@@ -28,52 +30,40 @@ object Parser {
       splitted ← splitTagAndMoves(preprocessed)
       tagStr = splitted._1
       moveStr = splitted._2
-      tags ← TagParser(tagStr)
+      preTags ← TagParser(tagStr)
       parsedMoves ← MovesParser(moveStr)
       init = parsedMoves._1
       strMoves = parsedMoves._2
       resultOption = parsedMoves._3
-      tags2 = resultOption.filterNot(_ => tags.exists(_.name == Tag.Result)).fold(tags)(t => tags :+ t)
-      sans ← objMoves(strMoves, getVariantFromTags(tags2))
-    } yield ParsedPgn(init, tags2, sans)
-  }
-  catch {
+      tags = resultOption.filterNot(_ => preTags.exists(_.Result)).foldLeft(preTags)(_ + _)
+      sans ← objMoves(strMoves, tags.variant | Variant.default)
+    } yield ParsedPgn(init, tags, sans)
+  } catch {
     case _: StackOverflowError =>
       println(pgn)
       sys error "### StackOverflowError ### in PGN parser"
   }
 
-  def getVariantFromTags(tags: List[Tag]): Variant =
-    tags.find(_.name == Tag.Variant).flatMap { tag =>
-      Variant byName tag.value
-    } getOrElse Variant.default
-
-  def moves(str: String, variant: Variant): Valid[List[San]] = moves(
+  def moves(str: String, variant: Variant): Valid[Sans] = moves(
     str.split(' ').toList,
     variant
   )
-  def moves(strMoves: List[String], variant: Variant): Valid[List[San]] = objMoves(
-    strMoves.map { StrMove(_, Glyphs.empty, Nil, Nil) },
+  def moves(strMoves: Traversable[String], variant: Variant): Valid[Sans] = objMoves(
+    strMoves.map { StrMove(_, Glyphs.empty, Nil, Nil) }(breakOut),
     variant
   )
-  def objMoves(strMoves: List[StrMove], variant: Variant): Valid[List[San]] =
+  def objMoves(strMoves: List[StrMove], variant: Variant): Valid[Sans] =
     strMoves.map {
       case StrMove(san, glyphs, comments, variations) => (
         MoveParser(san, variant) map { m =>
           m withComments comments withVariations {
             variations.map { v =>
-              objMoves(v, variant) match {
-                case Success(a) => a
-                case Failure(_) => Nil
-              }
-            }.filter(_.nonEmpty)
+              objMoves(v, variant) | Sans.empty
+            }.filter(_.value.nonEmpty)
           } mergeGlyphs glyphs
         }
       ): Valid[San]
-    }.foldLeft(Success(Nil): Valid[List[San]]) {
-      case (lo, eo) =>
-        lo.flatMap(l => eo.map(_ :: l))
-    }.map(_.reverse)
+    }.sequence map Sans.apply
 
   trait Logging { self: Parsers =>
     protected val loggingEnabled = false
@@ -99,7 +89,7 @@ object Parser {
       }
     }
 
-    val moveRegex = """0\-0\-0|0\-0|[PQKRBNOoa-h@][QKRBNa-h1-8xOo\-=\+\#\@]{1,6}[\?!□]{0,2}""".r
+    val moveRegex = """(?:(?:0\-0(?:\-0|)[\+\#]?)|[PQKRBNOoa-h@][QKRBNa-h1-8xOo\-=\+\#\@]{1,6})[\?!□]{0,2}""".r
 
     def strMove: Parser[StrMove] = as("move") {
       ((number | commentary)*) ~> (moveRegex ~ nagGlyphs ~ rep(commentary) ~ rep(variation)) <~ (moveExtras*) ^^ {
@@ -139,7 +129,7 @@ object Parser {
       ";" ~> """.+""".r
     }
 
-    val result: Parser[String] = "*" | "1/2-1/2" | "0-1" | "1-0"
+    val result: Parser[String] = "*" | "1/2-1/2" | "½-½" | "0-1" | "1-0"
   }
 
   object MoveParser extends RegexParsers with Logging {
@@ -302,13 +292,13 @@ object Parser {
 
   object TagParser extends RegexParsers with Logging {
 
-    def apply(pgn: String): Valid[List[Tag]] = parseAll(all, pgn) match {
-      case f: Failure => chess.failure("Cannot parse tags: %s\n%s".format(f.toString, pgn))
-      case Success(sans, _) => chess.success(sans)
-      case err => chess.failure("Cannot parse tags: %s\n%s".format(err.toString, pgn))
+    def apply(pgn: String): Valid[Tags] = parseAll(all, pgn) match {
+      case f: Failure => chess.failure("Cannot parse tags: %s\n%s".format(f.toString, pgn)
+      case Success(tags, _) => chess.success(Tags(tags))
+      case err => chess.failure("Cannot parse tags: %s\n%s".format(err.toString, pgn)
     }
 
-    def fromFullPgn(pgn: String): Valid[List[Tag]] =
+    def fromFullPgn(pgn: String): Valid[Tags] =
       splitTagAndMoves(pgn) flatMap {
         case (tags, _) => apply(tags)
       }
@@ -337,7 +327,7 @@ object Parser {
     """"\]\s*(\d+\.)""".r.replaceAllIn(pgn, m => "\"]\n" + m.group(1))
 
   private def splitTagAndMoves(pgn: String): Valid[(String, String)] =
-    ensureTagsNewline(pgn).lines.toList.map(_.trim).filter(_.nonEmpty) span { line =>
+    augmentString(ensureTagsNewline(pgn)).lines.toList.map(_.trim).filter(_.nonEmpty) span { line =>
       line lift 0 contains '['
     } match {
       case (tagLines, moveLines) => chess.success(tagLines.mkString("\n") -> moveLines.mkString("\n"))

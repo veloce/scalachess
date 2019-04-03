@@ -97,6 +97,7 @@ object StartingPosition {
       StartingPosition("C27", "Vienna Game", "rnbqkbnr/pppp1ppp/8/4p3/4P3/2N5/PPPP1PPP/R1BQKBNR b KQkq - 2 2", "Vienna_Game", "1. e4 e5 2.  Nc3"),
       StartingPosition("C27", "Frankenstein-Dracula Variation", "rnbqkb1r/pppp1ppp/8/4p3/2B1n3/2N5/PPPP1PPP/R1BQK1NR w KQkq - 0 4", "Frankenstein-Dracula_Variation", "1. e4 e5 2. Nc3 Nf6 3. Bc4 Nxe4"),
       StartingPosition("C47", "Halloween Gambit", "r1bqkb1r/pppp1ppp/2n2n2/4N3/4P3/2N5/PPPP1PPP/R1BQKB1R b KQkq - 1 4", "Halloween_Gambit", "1. e4 e5 2. Nf3 Nc6 3. Nc3 Nf6 4. Nxe5"),
+      StartingPosition("C20", "King's Pawn Game: Wayward Queen Attack", "rnbqkbnr/pppp1ppp/8/4p2Q/4P3/8/PPPP1PPP/RNB1KBNR b KQkq - 1 2", "Danvers_Opening", "1. e4 e5 2. Qh5"),
       StartingPosition("420", "Bongcloud Attack", "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPPKPPP/RNBQ1BNR b kq - 0 2", "Bong", "1. e4 e5 2. Ke2", false)
     )),
     Category("d4", List(
@@ -146,7 +147,7 @@ object StartingPosition {
       StartingPosition("D03", "Torre Attack", "rnbqkb1r/ppp1pppp/5n2/3p2B1/3P4/5N2/PPP1PPPP/RN1QKB1R b KQkq - 4 3", "Torre_Attack", "1. d4 d5 2. Nf3 Nf6 3. Bg5"),
       StartingPosition("D01", "Richter-Veresov Attack", "rnbqkb1r/ppp1pppp/5n2/3p2B1/3P4/2N5/PPP1PPPP/R2QKBNR b KQkq - 4 3", "Richter-Veresov_Attack", "1. d4 d5 2. Nc3 Nf6 3. Bg5"),
       StartingPosition("A52", "Budapest Defence", "rnbqkb1r/pppp1ppp/5n2/4p3/2PP4/8/PP2PPPP/RNBQKBNR w KQkq - 0 3", "Budapest_Gambit", "1.  d4 Nf6 2. c4 e5", false),
-      StartingPosition("B00", "Closed Game", "rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2", "Closed_Game", "1. d4 d5", false),
+      StartingPosition("D00", "Closed Game", "rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2", "Closed_Game", "1. d4 d5", false),
       StartingPosition("A45", "Trompowsky Attack", "rnbqkb1r/pppppppp/5n2/6B1/3P4/8/PPP1PPPP/RN1QKBNR b KQkq - 3 2", "Trompowsky_Attack", "1. d4 Nf6 2. Bg5")
     )),
     Category("Nf3", List(
@@ -163,6 +164,9 @@ object StartingPosition {
     Category("b3", List(
       StartingPosition("A01", "Nimzo-Larsen Attack", "rnbqkbnr/pppppppp/8/8/8/1P6/P1PPPPPP/RNBQKBNR b KQkq - 1 1", "Larsen's_Opening", "1. b3", false)
     )),
+    Category("b4", List(
+      StartingPosition("A00", "Sokolsky Opening", "rnbqkbnr/pppppppp/8/8/1P6/8/P1PPPPPP/RNBQKBNR b KQkq - 1 1", "Sokolsky_Opening", "1. b4", false)
+    )),
     Category("g3", List(
       StartingPosition("A00", "Hungarian Opening", "rnbqkbnr/pppppppp/8/8/8/6P1/PPPPPP1P/RNBQKBNR b KQkq - 1 1", "King's_Fianchetto_Opening", "1. g3", false)
     ))
@@ -174,11 +178,7 @@ object StartingPosition {
 
   def allWithInitial = initial +: all
 
-  private val ecoIndex: Map[String, StartingPosition] = all.map { p =>
-    p.eco -> p
-  }(scala.collection.breakOut)
-
-  val featurable = all.filter(_.featurable)
+  lazy val featurable = new scala.util.Random(475591).shuffle(all.filter(_.featurable)).toIndexedSeq
 
   def randomFeaturable = featurable(scala.util.Random.nextInt(featurable.size))
 
@@ -186,6 +186,4 @@ object StartingPosition {
     val halloween = StartingPosition("C47", "Halloween Gambit", "r1bqkb1r/pppp1ppp/2n2n2/4N3/4P3/2N5/PPPP1PPP/R1BQKB1R b KQkq - 1 4", "Halloween_Gambit", "1. e4 e5 2. Nf3 Nc6 3. Nc3 Nf6 4. Nxe5")
     val frankenstein = StartingPosition("C27", "Frankenstein-Dracula Variation", "rnbqkb1r/pppp1ppp/8/4p3/2B1n3/2N5/PPPP1PPP/R1BQK1NR w KQkq - 0 4", "Frankenstein-Dracula_Variation", "1. e4 e5 2. Nc3 Nf6 3. Bc4 Nxe4")
   }
-
-  def byEco(eco: String): Option[StartingPosition] = ecoIndex get eco
 }

@@ -3,48 +3,58 @@ package format.pgn
 
 object Reader {
 
-  def full(pgn: String, tags: List[Tag] = Nil): Valid[Replay] =
+  sealed trait Result {
+    def valid: Valid[Replay]
+  }
+
+  object Result {
+    case class Complete(replay: Replay) extends Result {
+      def valid = success(replay)
+    }
+    case class Incomplete(replay: Replay, failures: Failures) extends Result {
+      def valid = failure(failures)
+    }
+  }
+
+  def full(pgn: String, tags: Tags = Tags.empty): Valid[Result] =
     fullWithSans(pgn, identity, tags)
 
-  def moves(moveStrs: List[String], tags: List[Tag]): Valid[Replay] =
+  def moves(moveStrs: Traversable[String], tags: Tags): Valid[Result] =
     movesWithSans(moveStrs, identity, tags)
 
-  def fullWithSans(
-    pgn: String,
-    op: List[San] => List[San],
-    tags: List[Tag] = Nil
-  ): Valid[Replay] = for {
-    parsed ← Parser.full(pgn)
-    game = makeGame(parsed.tags ::: tags)
-    replay ← makeReplay(game, op(parsed.sans))
-  } yield replay
-
-  def fullWithSans(parsed: ParsedPgn, op: List[San] => List[San]): Valid[Replay] =
-    makeReplay(makeGame(parsed.tags), op(parsed.sans))
-
-  def movesWithSans(
-    moveStrs: List[String],
-    op: List[San] => List[San],
-    tags: List[Tag]
-  ): Valid[Replay] = for {
-    moves ← Parser.moves(moveStrs, Parser.getVariantFromTags(tags))
-    game = makeGame(tags)
-    replay ← makeReplay(game, op(moves))
-  } yield replay
-
-  private def makeReplay(game: Game, sans: List[San]) =
-    sans.foldLeft[Valid[Replay]](success(Replay(game))) {
-      case (replayValid, san) => for {
-        replay ← replayValid
-        move ← san(replay.state.situation)
-      } yield replay addMove move
+  def fullWithSans(pgn: String, op: Sans => Sans, tags: Tags = Tags.empty): Valid[Result] =
+    Parser.full(cleanUserInput(pgn)) map { parsed =>
+      makeReplay(makeGame(parsed.tags ++ tags), op(parsed.sans))
     }
 
-  private def makeGame(tags: List[Tag]) = {
+  def fullWithSans(parsed: ParsedPgn, op: Sans => Sans): Result =
+    makeReplay(makeGame(parsed.tags), op(parsed.sans))
+
+  def movesWithSans(moveStrs: Traversable[String], op: Sans => Sans, tags: Tags): Valid[Result] =
+    Parser.moves(moveStrs, tags.variant | variant.Variant.default) map { moves =>
+      makeReplay(makeGame(tags), op(moves))
+    }
+
+  // remove invisible byte order mark
+  def cleanUserInput(str: String) = str.replace("""\ufeff""", "")
+
+  private def makeReplay(game: Game, sans: Sans): Result =
+    sans.value.foldLeft[Result](Result.Complete(Replay(game))) {
+      case (Result.Complete(replay), san) => san(replay.state.situation).fold(
+        err => Result.Incomplete(replay, err),
+        move => Result.Complete(replay addMove move)
+      )
+      case (r: Result.Incomplete, _) => r
+    }
+
+  private def makeGame(tags: Tags) = {
     val g = Game(
-      variantOption = tags.find(_.name == Tag.Variant).map(_.value).flatMap(chess.variant.Variant.byName),
-      fen = tags.find(_.name == Tag.FEN).map(_.value)
+      variantOption = tags(_.Variant) flatMap chess.variant.Variant.byName,
+      fen = tags(_.FEN)
     )
-    g.copy(startedAtTurn = g.turns)
+    g.copy(
+      startedAtTurn = g.turns,
+      clock = tags.clockConfig map Clock.apply
+    )
   }
 }

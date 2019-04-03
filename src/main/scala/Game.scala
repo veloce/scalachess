@@ -3,14 +3,12 @@ package chess
 import format.{ pgn, Uci }
 
 case class Game(
-    board: Board,
-    player: Color = White,
-    pgnMoves: List[String] = Nil,
+    situation: Situation,
+    pgnMoves: Vector[String] = Vector(),
     clock: Option[Clock] = None,
     turns: Int = 0, // plies
     startedAtTurn: Int = 0
 ) {
-
   def apply(
     orig: Pos,
     dest: Pos,
@@ -22,15 +20,13 @@ case class Game(
     }
 
   def apply(move: Move): Game = {
-    val newGame = copy(
-      board = move.finalizeAfter,
-      player = !player,
-      turns = turns + 1
-    )
-    val pgnMove = pgn.Dumper(situation, move, newGame.situation)
-    newGame.copy(
-      pgnMoves = if (pgnMoves.isEmpty) List(pgnMove) else pgnMoves :+ pgnMove,
-      clock = applyClock(move.metrics, newGame.situation.status.isEmpty)
+    val newSituation = move situationAfter
+
+    copy(
+      situation = newSituation,
+      turns = turns + 1,
+      pgnMoves = pgnMoves :+ pgn.Dumper(situation, move, newSituation),
+      clock = applyClock(move.metrics, newSituation.status.isEmpty)
     )
   }
 
@@ -44,22 +40,20 @@ case class Game(
     }
 
   def applyDrop(drop: Drop): Game = {
-    val newGame = copy(
-      board = drop.finalizeAfter,
-      player = !player,
-      turns = turns + 1
-    )
-    val pgnMove = pgn.Dumper(drop, newGame.situation)
-    newGame.copy(
-      pgnMoves = if (pgnMoves.isEmpty) List(pgnMove) else pgnMoves :+ pgnMove,
-      clock = applyClock(drop.metrics, newGame.situation.status.isEmpty)
+    val newSituation = drop situationAfter
+
+    copy(
+      situation = newSituation,
+      turns = turns + 1,
+      pgnMoves = pgnMoves :+ pgn.Dumper(drop, newSituation),
+      clock = applyClock(drop.metrics, newSituation.status.isEmpty)
     )
   }
 
-  private def applyClock(metrics: MoveMetrics, withInc: Boolean) = clock.map { c =>
-    c.step(metrics, withInc) getOrElse {
-      if (turns - startedAtTurn == 1) c.switch.start
-      else c.switch
+  private def applyClock(metrics: MoveMetrics, gameActive: Boolean) = clock.map { c =>
+    {
+      val newC = c.step(metrics, gameActive)
+      if (turns - startedAtTurn == 1) newC.start else newC
     }
   }
 
@@ -70,11 +64,11 @@ case class Game(
     case u: Uci.Drop => apply(u) map { case (g, d) => g -> Right(d) }
   }
 
-  lazy val situation = Situation(board, player)
+  def player = situation.color
+
+  def board = situation.board
 
   def isStandardInit = board.pieces == chess.variant.Standard.pieces
-
-  def withPgnMoves(x: List[String]) = copy(pgnMoves = x)
 
   def halfMoveClock: Int = board.history.halfMoveClock
 
@@ -84,20 +78,25 @@ case class Game(
    */
   def fullMoveNumber: Int = 1 + turns / 2
 
-  def withBoard(b: Board) = copy(board = b)
+  def moveString = s"${fullMoveNumber}${player.fold(".", "...")}"
+
+  def withBoard(b: Board) = copy(situation = situation.copy(board = b))
 
   def updateBoard(f: Board => Board) = withBoard(f(board))
 
-  def withPlayer(c: Color) = copy(player = c)
+  def withPlayer(c: Color) = copy(situation = situation.copy(color = c))
 
   def withTurns(t: Int) = copy(turns = t)
 }
 
 object Game {
-
   def apply(variant: chess.variant.Variant): Game = new Game(
-    board = Board init variant
+    Situation(Board init variant, White)
   )
+
+  def apply(board: Board): Game = apply(board, White)
+
+  def apply(board: Board, color: Color): Game = new Game(Situation(board, color))
 
   def apply(variantOption: Option[chess.variant.Variant], fen: Option[String]): Game = {
     val variant = variantOption getOrElse chess.variant.Standard
@@ -106,10 +105,12 @@ object Game {
       format.Forsyth.<<<@(variant, _)
     }.fold(g) { parsed =>
       g.copy(
-        board = parsed.situation.board withVariant g.board.variant withCrazyData {
-        parsed.situation.board.crazyData orElse g.board.crazyData
-      },
-        player = parsed.situation.color,
+        situation = Situation(
+          board = parsed.situation.board withVariant g.board.variant withCrazyData {
+            parsed.situation.board.crazyData orElse g.board.crazyData
+          },
+          color = parsed.situation.color
+        ),
         turns = parsed.turns
       )
     }

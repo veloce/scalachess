@@ -16,7 +16,7 @@ import Pos.posAt
 object Visual {
 
   def <<(source: String): Board = {
-    val lines = source.lines.toList
+    val lines = augmentString(source).lines.toList
     val filtered = lines.size match {
       case 8 => lines
       case n if n > 8 => lines drop 1 take 8
@@ -24,12 +24,12 @@ object Visual {
     }
     Board(
       pieces = (for {
-      (l, y) ← (filtered zipWithIndex)
-      (c, x) ← (l zipWithIndex)
-      role ← Role forsyth c.toLower
-    } yield {
-      posAt(x + 1, 8 - y) map { pos => pos -> (Color(c isUpper) - role) }
-    }) flatten,
+        (l, y) ← (filtered zipWithIndex)
+        (c, x) ← (l zipWithIndex)
+        role ← Role forsyth c.toLower
+      } yield {
+        posAt(x + 1, 8 - y) map { pos => pos -> (Color(c isUpper) - role) }
+      }) flatten,
       variant = chess.variant.Variant.default
     )
   }

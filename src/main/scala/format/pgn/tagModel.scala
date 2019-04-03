@@ -12,6 +12,67 @@ sealed trait TagType {
   val isUnknown = false
 }
 
+case class Tags(value: List[Tag]) extends AnyVal {
+
+  def apply(name: String): Option[String] = {
+    val tagType = Tag tagType name
+    value.find(_.name == tagType).map(_.value)
+  }
+
+  def apply(which: Tag.type => TagType): Option[String] =
+    value find (_.name == which(Tag)) map (_.value)
+
+  def clockConfig: Option[Clock.Config] =
+    value.collectFirst {
+      case Tag(Tag.TimeControl, str) => str
+    } flatMap Clock.readPgnConfig
+
+  def variant: Option[chess.variant.Variant] =
+    apply(_.Variant).map(_.toLowerCase).flatMap {
+      case "chess 960" | "fischerandom" | "fischerrandom" => chess.variant.Chess960.some
+      case name => chess.variant.Variant byName name
+    }
+
+  def anyDate: Option[String] = apply(_.UTCDate) orElse apply(_.Date)
+
+  def year: Option[Int] = anyDate flatMap {
+    case Tags.DateRegex(y, _, _) => parseIntOption(y)
+    case _ => None
+  }
+
+  def fen: Option[format.FEN] = apply(_.FEN) map format.FEN.apply
+
+  def exists(which: Tag.type => TagType): Boolean =
+    value.exists(_.name == which(Tag))
+
+  def resultColor: Option[Option[Color]] =
+    apply(_.Result).filter("*" !=) map Color.fromResult
+
+  def ++(tags: Tags) = tags.value.foldLeft(this)(_ + _)
+
+  def +(tag: Tag) = Tags(value.filterNot(_.name == tag.name) :+ tag)
+
+  def sorted = copy(
+    value = value.sortBy { tag =>
+      Tags.tagIndex.getOrElse(tag.name, 999)
+    }
+  )
+
+  override def toString = sorted.value mkString "\n"
+}
+
+object Tags {
+  val empty = Tags(Nil)
+
+  // according to http://www.saremba.de/chessgml/standards/pgn/pgn-complete.htm#c8.1.1
+  val sevenTagRoster = List(
+    Tag.Event, Tag.Site, Tag.Date, Tag.Round, Tag.White, Tag.Black, Tag.Result
+  )
+  val tagIndex: Map[TagType, Int] = sevenTagRoster.zipWithIndex.toMap
+
+  private val DateRegex = """(\d{4}|\?{4})\.(\d\d|\?\?)\.(\d\d|\?\?)""".r
+}
+
 object Tag {
 
   case object Event extends TagType
@@ -66,8 +127,8 @@ object Tag {
   def tagType(name: String) =
     (tagTypesByLowercase get name.toLowerCase) getOrElse Unknown(name)
 
-  def find(tags: List[Tag], name: String): Option[String] = {
-    val tagType = (Tag tagType name)
-    tags.find(_.name == tagType).map(_.value)
-  }
+  def timeControl(clock: Option[Clock.Config]) =
+    Tag(TimeControl, clock.fold("-") { c =>
+      s"${c.limit.roundSeconds}+${c.increment.roundSeconds}"
+    })
 }

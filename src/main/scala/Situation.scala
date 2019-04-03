@@ -42,7 +42,7 @@ case class Situation(board: Board, color: Color) {
   def playable(strict: Boolean): Boolean =
     (board valid strict) && !end && !copy(color = !color).check
 
-  def status: Option[Status] =
+  lazy val status: Option[Status] =
     if (checkMate) Some(Status.Mate)
     else if (variantEnd) Some(Status.VariantEnd)
     else if (staleMate) Some(Status.Stalemate)

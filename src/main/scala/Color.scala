@@ -40,6 +40,10 @@ object Color {
 
     def map[B](f: A => B): Map[B] = map(f, f)
 
+    def all: Seq[A] = Seq(white, black)
+
+    def reduce[B](f: (A, A) => B) = f(white, black)
+
     def forall(pred: A => Boolean) = pred(white) && pred(black)
 
     def exists(pred: A => Boolean) = pred(white) || pred(black)
@@ -65,7 +69,7 @@ object Color {
 
   case object Black extends Color {
 
-    lazy val unary_! = White
+    val unary_! = White
 
     val passablePawnY = 4
     val promotablePawnY = 1
@@ -76,6 +80,8 @@ object Color {
 
     override val hashCode = 2
   }
+
+  def fromPly(ply: Int) = apply((ply & 1) == 0)
 
   def apply(b: Boolean): Color = if (b) White else Black
 
@@ -101,6 +107,12 @@ object Color {
   def showResult(color: Option[Color]) = color match {
     case Some(chess.White) => "1-0"
     case Some(chess.Black) => "0-1"
-    case None => "½-½"
+    case None => "1/2-1/2"
+  }
+
+  def fromResult(result: String): Option[Color] = result match {
+    case "1-0" => Some(chess.White)
+    case "0-1" => Some(chess.Black)
+    case _ => None
   }
 }
