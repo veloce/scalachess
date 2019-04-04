@@ -87,6 +87,8 @@ case class Game(
   def withPlayer(c: Color) = copy(situation = situation.copy(color = c))
 
   def withTurns(t: Int) = copy(turns = t)
+
+  def withPgnMoves(x: Vector[String]) = copy(pgnMoves = x)
 }
 
 object Game {

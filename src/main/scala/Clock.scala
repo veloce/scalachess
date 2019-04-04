@@ -1,7 +1,5 @@
 package chess
 
-import java.text.DecimalFormat
-
 import Clock.Config
 
 // All unspecified durations are expressed in seconds
@@ -147,8 +145,6 @@ object ClockPlayer {
 }
 
 object Clock {
-  private val limitFormatter = new DecimalFormat("#.##")
-
   // All unspecified durations are expressed in seconds
   case class Config(limitSeconds: Int, incrementSeconds: Int) {
 
@@ -176,7 +172,7 @@ object Clock {
       case 30 => "½"
       case 45 => "¾"
       case 90 => "1.5"
-      case _ => limitFormatter.format(limitSeconds / 60d)
+      case _ => "#.##".format(limitSeconds / 60d)
     }
 
     def show = toString
