@@ -31,7 +31,7 @@ object Reader {
     makeReplay(makeGame(parsed.tags), op(parsed.sans))
 
   def movesWithSans(moveStrs: Traversable[String], op: Sans => Sans, tags: Tags): Valid[Result] =
-    Parser.moves(moveStrs, tags.variant | variant.Variant.default) map { moves =>
+    Parser.moves(moveStrs, tags.variant getOrElse variant.Variant.default) map { moves =>
       makeReplay(makeGame(tags), op(moves))
     }
 

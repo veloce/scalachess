@@ -25,6 +25,7 @@ package object chess {
 
   def success[A](e: A): Valid[A] = Success(e)
   def failure(s: String): Valid[Nothing] = Failure(NonEmptySingle(s))
+  def failure(fs: Failures): Valid[Nothing] = Failure(fs)
 
   val White = Color.White
   val Black = Color.Black
@@ -43,5 +44,5 @@ package object chess {
   }
 
   def parseIntOption(str: String): Option[Int] =
-    Try(Integer.parseInt(str)).toOption
+    scala.util.Try(Integer.parseInt(str)).toOption
 }

@@ -18,7 +18,7 @@ final case class Centis(centis: Int) extends AnyVal with Ordered[Centis] {
   def *(scalar: Int) = Centis(scalar * centis)
   def *~(scalar: Float) = Centis(scalar * centis)
   def *~(scalar: Double) = Centis(scalar * centis)
-  def /(div: Int) = div != 0 option Centis(centis / div)
+  def /(div: Int) = if (div != 0) Some(Centis(centis / div)) else None
   def unary_- = Centis(-centis)
 
   def avg(other: Centis) = Centis((centis + other.centis) >> 1)
@@ -32,18 +32,6 @@ final case class Centis(centis: Int) extends AnyVal with Ordered[Centis] {
 }
 
 object Centis {
-
-  def apply(value: Long): Centis = Centis {
-    if (value > Int.MaxValue) {
-      // lila.log("common").error(s"Truncating Centis! $value")
-      Int.MaxValue
-    }
-    else if (value < Int.MinValue) {
-      // lila.log("common").error(s"Truncating Centis! $value")
-      Int.MinValue
-    }
-    else value.toInt
-  }
 
   implicit final class CentisScalar(val scalar: Int) extends AnyVal {
     def *(o: Centis) = o * scalar

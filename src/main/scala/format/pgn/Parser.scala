@@ -36,7 +36,7 @@ object Parser {
       strMoves = parsedMoves._2
       resultOption = parsedMoves._3
       tags = resultOption.filterNot(_ => preTags.exists(_.Result)).foldLeft(preTags)(_ + _)
-      sans ← objMoves(strMoves, tags.variant | Variant.default)
+      sans ← objMoves(strMoves, tags.variant getOrElse Variant.default)
     } yield ParsedPgn(init, tags, sans)
   } catch {
     case _: StackOverflowError =>
@@ -58,12 +58,15 @@ object Parser {
         MoveParser(san, variant) map { m =>
           m withComments comments withVariations {
             variations.map { v =>
-              objMoves(v, variant) | Sans.empty
+              objMoves(v, variant).fold(_ => Sans.empty, identity)
             }.filter(_.value.nonEmpty)
           } mergeGlyphs glyphs
         }
       ): Valid[San]
-    }.sequence map Sans.apply
+    }.foldRight(Success(Sans.empty): Valid[Sans]) {
+      case (el: Valid[San], acc: Valid[Sans]) =>
+        acc.flatMap(sans => el.map((s: San) => Sans(s :: sans.value)))
+    }
 
   trait Logging { self: Parsers =>
     protected val loggingEnabled = false
@@ -293,9 +296,9 @@ object Parser {
   object TagParser extends RegexParsers with Logging {
 
     def apply(pgn: String): Valid[Tags] = parseAll(all, pgn) match {
-      case f: Failure => chess.failure("Cannot parse tags: %s\n%s".format(f.toString, pgn)
+      case f: Failure => chess.failure("Cannot parse tags: %s\n%s".format(f.toString, pgn))
       case Success(tags, _) => chess.success(Tags(tags))
-      case err => chess.failure("Cannot parse tags: %s\n%s".format(err.toString, pgn)
+      case err => chess.failure("Cannot parse tags: %s\n%s".format(err.toString, pgn))
     }
 
     def fromFullPgn(pgn: String): Valid[Tags] =

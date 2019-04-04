@@ -40,7 +40,7 @@ case class Pgn(
       if (initial.comments.nonEmpty) initial.comments.mkString("{ ", " } { ", " }\n")
       else ""
     val turnStr = turns mkString " "
-    val endStr = tags(_.Result) | ""
+    val endStr = tags(_.Result) getOrElse ""
     s"$tags\n\n$initStr$turnStr $endStr"
   }.trim
 

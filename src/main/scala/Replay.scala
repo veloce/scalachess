@@ -34,7 +34,7 @@ object Replay {
         nonEmptyMoves,
         Tags(List(
           initialFen map { fen => Tag(_.FEN, fen) },
-          variant.some.filterNot(_.standard) map { v => Tag(_.Variant, v.name) }
+          Some(variant).filterNot(_.standard) map { v => Tag(_.Variant, v.name) }
         ).flatten)
       )
     }
@@ -78,9 +78,9 @@ object Replay {
       )
       case _ => (Nil, None)
     }
-    val init = makeGame(variant, initialFen.some)
+    val init = makeGame(variant, Some(initialFen))
     Parser.moves(moveStrs, variant).fold(
-      err => List.empty[(Game, Uci.WithSan)] -> err.head.some,
+      err => List.empty[(Game, Uci.WithSan)] -> Some(err.head),
       moves => mk(init, moves.value zip moveStrs)
     ) match {
         case (games, err) => (init, games, err)
@@ -191,7 +191,7 @@ object Replay {
     }
 
   private def makeGame(variant: chess.variant.Variant, initialFen: Option[String]): Game = {
-    val g = Game(variant.some, initialFen)
+    val g = Game(Some(variant), initialFen)
     g.copy(startedAtTurn = g.turns)
   }
 }

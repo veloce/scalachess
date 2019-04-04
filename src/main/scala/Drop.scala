@@ -34,7 +34,7 @@ case class Drop(
   def afterWithLastMove = after.variant.finalizeBoard(
     after.copy(history = after.history.withLastMove(toUci)),
     toUci,
-    none
+    None
   )
 
   def color = piece.color
